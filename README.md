@@ -81,7 +81,7 @@ dados_climatico |>
 ## Estatísticas descritivas gerais
 
 ``` r
-resumo_geral <- dados_climatico %>%
+resumo_geral <- dados_climatico  |> 
   summarise(
     temp_min_media = mean(temp_min, na.rm = TRUE),
     temp_med_media = mean(temp_media, na.rm = TRUE),
@@ -93,7 +93,7 @@ resumo_geral <- dados_climatico %>%
     prec_sd = sd(precipitacao, na.rm = TRUE),
     n_dias = n()
   )
-print(resumo_geral)
+resumo_geral
 ```
 
     #> # A tibble: 1 × 9
@@ -106,8 +106,8 @@ print(resumo_geral)
 ## Estatísticas mensais
 
 ``` r
-resumo_mensal <- dados_climatico %>%
-  group_by(ano, mes) %>%
+resumo_mensal <- dados_climatico  |> 
+  group_by(ano, mes)  |> 
   summarise(
     temp_min = mean(temp_min, na.rm = TRUE),
     temp_med = mean(temp_media, na.rm = TRUE),
@@ -115,7 +115,7 @@ resumo_mensal <- dados_climatico %>%
     prec_total = sum(precipitacao, na.rm = TRUE),
     .groups = "drop"
   )
-print(resumo_mensal)
+resumo_mensal
 ```
 
     #> # A tibble: 65 × 6
