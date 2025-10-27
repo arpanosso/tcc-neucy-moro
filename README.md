@@ -11,12 +11,49 @@
 
 ``` r
 library(tidyverse)
+#> Warning: package 'tidyverse' was built under R version 4.4.0
+#> Warning: package 'tidyr' was built under R version 4.3.3
+#> Warning: package 'readr' was built under R version 4.3.3
+#> Warning: package 'purrr' was built under R version 4.3.3
+#> Warning: package 'dplyr' was built under R version 4.3.3
+#> Warning: package 'stringr' was built under R version 4.3.3
+#> Warning: package 'lubridate' was built under R version 4.3.3
+#> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+#> ✔ dplyr     1.1.4     ✔ readr     2.1.5
+#> ✔ forcats   1.0.0     ✔ stringr   1.5.1
+#> ✔ ggplot2   3.5.2     ✔ tibble    3.2.1
+#> ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+#> ✔ purrr     1.0.4     
+#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+#> ✖ dplyr::filter() masks stats::filter()
+#> ✖ dplyr::lag()    masks stats::lag()
+#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
 library(zoo)
+#> 
+#> Attaching package: 'zoo'
+#> 
+#> The following objects are masked from 'package:base':
+#> 
+#>     as.Date, as.Date.numeric
 library(trend)
+#> Warning: package 'trend' was built under R version 4.3.3
 library(ggpubr)
 library(DescTools)
+#> Warning: package 'DescTools' was built under R version 4.3.3
 library(scales)
+#> 
+#> Attaching package: 'scales'
+#> 
+#> The following object is masked from 'package:purrr':
+#> 
+#>     discard
+#> 
+#> The following object is masked from 'package:readr':
+#> 
+#>     col_factor
 library(corrplot)
+#> Warning: package 'corrplot' was built under R version 4.3.3
+#> corrplot 0.95 loaded
 ```
 
 ## Carregando dados
@@ -24,20 +61,19 @@ library(corrplot)
 ``` r
 dados_climatico <- read_rds("data/dados-climaticos.rds")
 glimpse(dados_climatico)
+#> Rows: 1,974
+#> Columns: 10
+#> $ data            <dttm> 2020-01-01, 2020-01-02, 2020-01-03, 2020-01-04, 2020-…
+#> $ ano             <dbl> 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, …
+#> $ mes             <dbl> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
+#> $ dia             <int> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,…
+#> $ dia_juliano     <dbl> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,…
+#> $ temp_max        <dbl> 31.7, 29.3, 27.9, 25.1, 29.6, 28.9, 30.8, 26.5, 28.3, …
+#> $ temp_min        <dbl> 21.8, 22.6, 22.7, 22.7, 22.6, 22.7, 21.2, 22.5, 22.1, …
+#> $ temp_media      <dbl> 25.6, 25.1, 24.0, 23.5, 24.9, 24.8, 25.0, 23.8, 24.8, …
+#> $ precipitacao    <dbl> 0.2, 1.2, 8.0, 7.6, 0.0, 5.4, 10.6, 34.2, 0.2, 11.2, 0…
+#> $ preci_acumulada <dbl> 0.2, 1.4, 9.4, 17.0, 17.0, 22.4, 33.0, 67.2, 67.4, 78.…
 ```
-
-    #> Rows: 1,974
-    #> Columns: 10
-    #> $ data            <dttm> 2020-01-01, 2020-01-02, 2020-01-03, 2020-01-04, 2020-…
-    #> $ ano             <dbl> 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, 2020, …
-    #> $ mes             <dbl> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
-    #> $ dia             <int> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,…
-    #> $ dia_juliano     <dbl> 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,…
-    #> $ temp_max        <dbl> 31.7, 29.3, 27.9, 25.1, 29.6, 28.9, 30.8, 26.5, 28.3, …
-    #> $ temp_min        <dbl> 21.8, 22.6, 22.7, 22.7, 22.6, 22.7, 21.2, 22.5, 22.1, …
-    #> $ temp_media      <dbl> 25.6, 25.1, 24.0, 23.5, 24.9, 24.8, 25.0, 23.8, 24.8, …
-    #> $ precipitacao    <dbl> 0.2, 1.2, 8.0, 7.6, 0.0, 5.4, 10.6, 34.2, 0.2, 11.2, 0…
-    #> $ preci_acumulada <dbl> 0.2, 1.4, 9.4, 17.0, 17.0, 22.4, 33.0, 67.2, 67.4, 78.…
 
 ## Gráfico
 
@@ -74,6 +110,13 @@ dados_climatico |>
   theme(
     legend.position = "top"
   ) 
+#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+#> ℹ Please use `linewidth` instead.
+#> This warning is displayed once every 8 hours.
+#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+#> generated.
+#> Warning: Removed 25 rows containing missing values or values outside the scale range
+#> (`geom_col()`).
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
@@ -94,14 +137,13 @@ resumo_geral <- dados_climatico  |>
     n_dias = n()
   )
 resumo_geral
+#> # A tibble: 1 × 9
+#>   temp_min_media temp_med_media temp_max_media prec_media temp_min_sd
+#>            <dbl>          <dbl>          <dbl>      <dbl>       <dbl>
+#> 1           19.8           25.2           32.1       5.33        3.03
+#> # ℹ 4 more variables: temp_med_sd <dbl>, temp_max_sd <dbl>, prec_sd <dbl>,
+#> #   n_dias <int>
 ```
-
-    #> # A tibble: 1 × 9
-    #>   temp_min_media temp_med_media temp_max_media prec_media temp_min_sd
-    #>            <dbl>          <dbl>          <dbl>      <dbl>       <dbl>
-    #> 1           19.8           25.2           32.1       5.33        3.03
-    #> # ℹ 4 more variables: temp_med_sd <dbl>, temp_max_sd <dbl>, prec_sd <dbl>,
-    #> #   n_dias <int>
 
 ## Estatísticas mensais
 
@@ -116,22 +158,21 @@ resumo_mensal <- dados_climatico  |>
     .groups = "drop"
   )
 resumo_mensal
+#> # A tibble: 65 × 6
+#>      ano   mes temp_min temp_med temp_max prec_total
+#>    <dbl> <dbl>    <dbl>    <dbl>    <dbl>      <dbl>
+#>  1  2020     1     22.2     25.6     31.2      376. 
+#>  2  2020     2     22.5     25.7     31.1      360. 
+#>  3  2020     3     22.5     26.0     31.3      171. 
+#>  4  2020     4     21.6     25.7     30.9      103. 
+#>  5  2020     5     17.9     23.5     29.9       71.4
+#>  6  2020     6     17.4     24.6     32.6        0  
+#>  7  2020     7     15.6     24.4     33.4        0  
+#>  8  2020     8     16.1     25.5     34.7        0  
+#>  9  2020     9     19.4     28.1     37.0        0  
+#> 10  2020    10     21.8     27.3     34.8       86.8
+#> # ℹ 55 more rows
 ```
-
-    #> # A tibble: 65 × 6
-    #>      ano   mes temp_min temp_med temp_max prec_total
-    #>    <dbl> <dbl>    <dbl>    <dbl>    <dbl>      <dbl>
-    #>  1  2020     1     22.2     25.6     31.2      376. 
-    #>  2  2020     2     22.5     25.7     31.1      360. 
-    #>  3  2020     3     22.5     26.0     31.3      171. 
-    #>  4  2020     4     21.6     25.7     30.9      103. 
-    #>  5  2020     5     17.9     23.5     29.9       71.4
-    #>  6  2020     6     17.4     24.6     32.6        0  
-    #>  7  2020     7     15.6     24.4     33.4        0  
-    #>  8  2020     8     16.1     25.5     34.7        0  
-    #>  9  2020     9     19.4     28.1     37.0        0  
-    #> 10  2020    10     21.8     27.3     34.8       86.8
-    #> # ℹ 55 more rows
 
 ## Gráficos de tendência temporal
 
@@ -144,6 +185,7 @@ dados_climatico |>
   geom_smooth(method = "loess", se = FALSE, color = "black") +
   labs(title = "Temperatura media diaria", x = "Data", y = "oC") +
   theme_minimal()
+#> `geom_smooth()` using formula = 'y ~ x'
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
@@ -212,21 +254,12 @@ max_dias_secos <- max(dias_secos)
 limite_calor <- quantile(dados_climatico$temp_max, 0.9, na.rm = TRUE)
 ondas_calor <- sum(dados_climatico$temp_max > limite_calor, na.rm = TRUE)
 dias_chuva
-```
-
-    #> [1] 609
-
-``` r
+#> [1] 609
 max_dias_secos
-```
-
-    #> [1] 141
-
-``` r
+#> [1] 141
 ondas_calor
+#> [1] 198
 ```
-
-    #> [1] 198
 
 ``` r
 # ------------------------------------------------------------
@@ -253,17 +286,16 @@ print(climograma)
 ``` r
 teste_temp <- mk.test(dados_climatico$temp_media)
 print(teste_temp)
+#> 
+#>  Mann-Kendall trend test
+#> 
+#> data:  dados_climatico$temp_media
+#> z = -4.1334, n = 1974, p-value = 3.575e-05
+#> alternative hypothesis: true S is not equal to 0
+#> sample estimates:
+#>             S          varS           tau 
+#> -1.208800e+05  8.552482e+08 -6.225825e-02
 ```
-
-    #> 
-    #>  Mann-Kendall trend test
-    #> 
-    #> data:  dados_climatico$temp_media
-    #> z = -4.1334, n = 1974, p-value = 3.575e-05
-    #> alternative hypothesis: true S is not equal to 0
-    #> sample estimates:
-    #>             S          varS           tau 
-    #> -1.208800e+05  8.552482e+08 -6.225825e-02
 
 ``` r
 ggplot(dados_climatico, aes(x = data, y = temp_media)) +
@@ -272,6 +304,7 @@ ggplot(dados_climatico, aes(x = data, y = temp_media)) +
   labs(title = "Tendencia temporal da temperatura media (2020–2025)",
        x = "Data", y = "Temperatura media (oC)") +
   theme_minimal()
+#> `geom_smooth()` using formula = 'y ~ x'
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
