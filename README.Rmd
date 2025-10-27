@@ -7,29 +7,212 @@ output: github_document
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  error = FALSE,
+  warning = FALSE,
+  message = FALSE,
   comment = "#>"
 )
 ```
 
-# tcc-neucy-moro
+# TCC Neucy
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of tcc-neucy-moro is to ...
+## Carregando pacotes
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-```{r cars}
-summary(cars)
+```{r}
+library(tidyverse)
+library(zoo)
+library(trend)
+library(ggpubr)
+library(DescTools)
+library(scales)
+library(corrplot)
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date.
+## Carregando dados
 
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
+```{r}
+dados_climatico <- read_rds("data/dados-climaticos.rds")
+glimpse(dados_climatico)
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub.
+## Gráfico 
+
+```{r}
+dados_climatico |> 
+  select(data, temp_max, temp_min, temp_media, precipitacao) |> 
+  pivot_longer(cols = temp_max:temp_media,
+               names_to = "variavel",
+               values_to = "valores") |> 
+  mutate(
+    variavel = case_when(
+      variavel == "temp_max" ~ "Maxima",
+      variavel == "temp_media" ~ "Media",
+      variavel == "temp_min" ~ "Minima"
+    )
+  ) |> 
+  ggplot(aes(x = data)) +
+  # barras de precipitação (em escala secundária)
+  geom_line(aes(y = valores, color = variavel), size = .25) +
+  geom_col(aes(y = precipitacao * 0.2),  # ajuste o fator (0.2) conforme a escala
+           fill = "skyblue") +
+  # linhas de temperatura
+  theme_bw() +
+  scale_color_manual(values = c("gray", "black", "darkgray")) +
+  scale_y_continuous(
+    name = "Temperatura (oC)",
+    limits = c(0, 40), 
+    sec.axis = sec_axis(~./0.3, name = "Precipitacao (mm)") # inverso do fator usado
+  ) +
+  labs(
+    color = "",
+    x = "Data"
+  ) +
+  theme(
+    legend.position = "top"
+  ) 
+```
+
+## Estatísticas descritivas gerais
+
+```{r}
+resumo_geral <- dados_climatico %>%
+  summarise(
+    temp_min_media = mean(temp_min, na.rm = TRUE),
+    temp_med_media = mean(temp_media, na.rm = TRUE),
+    temp_max_media = mean(temp_max, na.rm = TRUE),
+    prec_media = mean(precipitacao, na.rm = TRUE),
+    temp_min_sd = sd(temp_min, na.rm = TRUE),
+    temp_med_sd = sd(temp_media, na.rm = TRUE),
+    temp_max_sd = sd(temp_max, na.rm = TRUE),
+    prec_sd = sd(precipitacao, na.rm = TRUE),
+    n_dias = n()
+  )
+print(resumo_geral)
+```
+##  Estatísticas mensais
+
+```{r}
+resumo_mensal <- dados_climatico %>%
+  group_by(ano, mes) %>%
+  summarise(
+    temp_min = mean(temp_min, na.rm = TRUE),
+    temp_med = mean(temp_media, na.rm = TRUE),
+    temp_max = mean(temp_max, na.rm = TRUE),
+    prec_total = sum(precipitacao, na.rm = TRUE),
+    .groups = "drop"
+  )
+print(resumo_mensal)
+```
+
+## Gráficos de tendência temporal
+
+### Temperatura média diária
+
+```{r}
+dados_climatico |> 
+  ggplot(aes(x = data, y = temp_media)) +
+  geom_line(color = "darkred", alpha = 0.6) +
+  geom_smooth(method = "loess", se = FALSE, color = "black") +
+  labs(title = "Temperatura media diaria", x = "Data", y = "oC") +
+  theme_minimal()
+```
+
+## Precipitação diária
+
+```{r}
+dados_climatico |> 
+  ggplot(aes(x = data, y = precipitacao)) +
+  geom_col(fill = "steelblue") +
+  labs(title = "Precipitacao diaria", x = "Data", y = "mm") +
+  theme_minimal() +
+  facet_wrap(~ano,scale="free") +
+  theme(
+    axis.text.x = element_text(angle = 45)
+  )
+```
+
+## Boxplots mensais (sazonalidade)
+
+```{r}
+dados_climatico |> 
+  ggplot(aes(x = as_factor(mes), y = temp_media)) +
+  geom_boxplot(fill = "orange", alpha = 0.7) +
+  labs(title = "Distribuicao mensal da temperatura media", x = "Mes", y = "oC") +
+  theme_minimal()
+```
+
+
+```{r}
+dados_climatico |> 
+  ggplot(aes(x = as_factor(mes), y = precipitacao)) +
+  geom_boxplot(fill = "skyblue", alpha = 0.7) +
+  labs(title = "Distribuicao mensal da precipitacao diaria", x = "Mes", y = "mm") +
+  theme_minimal()
+```
+
+## Correlação entre variáveis
+
+```{r}
+cor_matriz <- dados_climatico %>%
+  select(temp_min, temp_media, temp_max, precipitacao) %>%
+  cor(use = "pairwise.complete.obs")
+
+corrplot(cor_matriz, method = "color", addCoef.col = "black")
+```
+
+## Análises de extremos
+
+```{r}
+# Dias de chuva
+dias_chuva <- sum(dados_climatico$precipitacao > 1, na.rm = TRUE)
+
+# Dias secos consecutivos
+dias_secos <- rle(dados_climatico$precipitacao == 0)$lengths
+max_dias_secos <- max(dias_secos)
+
+# Ondas de calor (dias com T > p90)
+limite_calor <- quantile(dados_climatico$temp_max, 0.9, na.rm = TRUE)
+ondas_calor <- sum(dados_climatico$temp_max > limite_calor, na.rm = TRUE)
+dias_chuva
+max_dias_secos
+ondas_calor
+```
+
+
+```{r}
+# ------------------------------------------------------------
+# 9. Gráfico tipo climograma
+# ------------------------------------------------------------
+climograma <- resumo_mensal %>%
+  ggplot(aes(x = mes)) +
+  geom_col(aes(y = prec_total), fill = "steelblue", alpha = 0.6) +
+  geom_line(aes(y = temp_med * 50, group = 1), color = "red", size = 1.1) +
+  scale_y_continuous(
+    name = "Precipitacao (mm)",
+    sec.axis = sec_axis(~./50, name = "Temperatura media (oC)")
+  ) +
+  labs(title = "Climograma - Precipitacao e Temperatura Media Mensal") +
+  theme_minimal()
+
+print(climograma)
+```
+
+## Tendência temporal (Mann-Kendall)
+
+```{r}
+teste_temp <- mk.test(dados_climatico$temp_media)
+print(teste_temp)
+```
+
+```{r}
+ggplot(dados_climatico, aes(x = data, y = temp_media)) +
+  geom_line(alpha = 0.6, color = "darkred") +
+  geom_smooth(method = "lm", se = TRUE, color = "black") +
+  labs(title = "Tendencia temporal da temperatura media (2020–2025)",
+       x = "Data", y = "Temperatura media (oC)") +
+  theme_minimal()
+```
+
