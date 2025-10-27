@@ -11,22 +11,12 @@
 
 ``` r
 library(tidyverse)
-#> Warning: package 'tidyverse' was built under R version 4.4.0
-#> Warning: package 'tidyr' was built under R version 4.3.3
-#> Warning: package 'readr' was built under R version 4.3.3
-#> Warning: package 'purrr' was built under R version 4.3.3
-#> Warning: package 'dplyr' was built under R version 4.3.3
-#> Warning: package 'stringr' was built under R version 4.3.3
-#> Warning: package 'lubridate' was built under R version 4.3.3
 library(zoo)
 library(trend)
-#> Warning: package 'trend' was built under R version 4.3.3
 library(ggpubr)
 library(DescTools)
-#> Warning: package 'DescTools' was built under R version 4.3.3
 library(scales)
 library(corrplot)
-#> Warning: package 'corrplot' was built under R version 4.3.3
 ```
 
 ## Carregando dados
@@ -67,7 +57,7 @@ dados_climatico |>
   # barras de precipitação (em escala secundária)
   geom_line(aes(y = valores, color = variavel), size = .25) +
   geom_col(aes(y = precipitacao * 0.2),  # ajuste o fator (0.2) conforme a escala
-           fill = "skyblue") +
+           fill = "skyblue4") +
   # linhas de temperatura
   theme_bw() +
   scale_color_manual(values = c("gray", "black", "darkgray")) +
@@ -83,13 +73,6 @@ dados_climatico |>
   theme(
     legend.position = "top"
   ) 
-#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-#> ℹ Please use `linewidth` instead.
-#> This warning is displayed once every 8 hours.
-#> Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-#> generated.
-#> Warning: Removed 25 rows containing missing values or values outside the scale range
-#> (`geom_col()`).
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
@@ -167,7 +150,7 @@ dados_climatico |>
 ``` r
 dados_climatico |> 
   ggplot(aes(x = data, y = precipitacao)) +
-  geom_col(fill = "steelblue") +
+  geom_col(fill = "steelblue4") +
   labs(title = "Precipitacao diaria", x = "Data", y = "mm") +
   theme_minimal() +
   facet_wrap(~ano,scale="free") +
@@ -183,7 +166,7 @@ dados_climatico |>
 ``` r
 dados_climatico |> 
   ggplot(aes(x = as_factor(mes), y = temp_media)) +
-  geom_boxplot(fill = "orange", alpha = 0.7) +
+  geom_boxplot(fill = "orange4", alpha = 0.7) +
   labs(title = "Distribuicao mensal da temperatura media", x = "Mes", y = "oC") +
   theme_minimal()
 ```
@@ -193,7 +176,7 @@ dados_climatico |>
 ``` r
 dados_climatico |> 
   ggplot(aes(x = as_factor(mes), y = precipitacao)) +
-  geom_boxplot(fill = "skyblue", alpha = 0.7) +
+  geom_boxplot(fill = "skyblue3", alpha = 0.7) +
   labs(title = "Distribuicao mensal da precipitacao diaria", x = "Mes", y = "mm") +
   theme_minimal()
 ```
@@ -207,7 +190,7 @@ cor_matriz <- dados_climatico %>%
   select(temp_min, temp_media, temp_max, precipitacao) %>%
   cor(use = "pairwise.complete.obs")
 
-corrplot(cor_matriz, method = "color", addCoef.col = "black")
+corrplot(cor_matriz, method = "color", addCoef.col = "grey6")
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
@@ -239,7 +222,7 @@ ondas_calor
 # ------------------------------------------------------------
 climograma <- resumo_mensal %>%
   ggplot(aes(x = mes)) +
-  geom_col(aes(y = prec_total), fill = "steelblue", alpha = 0.6) +
+  geom_col(aes(y = prec_total), fill = "steelblue4", alpha = 0.6) +
   geom_line(aes(y = temp_med * 50, group = 1), color = "red", size = 1.1) +
   scale_y_continuous(
     name = "Precipitacao (mm)",
@@ -271,7 +254,7 @@ print(teste_temp)
 
 ``` r
 ggplot(dados_climatico, aes(x = data, y = temp_media)) +
-  geom_line(alpha = 0.6, color = "darkred") +
+  geom_line(alpha = 0.6, color = "red4") +
   geom_smooth(method = "lm", se = TRUE, color = "black") +
   labs(title = "Tendencia temporal da temperatura media (2020–2025)",
        x = "Data", y = "Temperatura media (oC)") +
