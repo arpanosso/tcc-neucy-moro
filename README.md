@@ -11,11 +11,8 @@
 
 ``` r
 library(tidyverse)
-# library(zoo)
 library(trend)
 library(ggpubr)
-# library(DescTools)
-# library(scales)
 library(corrplot)
 ```
 
@@ -167,7 +164,8 @@ dados_climatico |>
 dados_climatico |> 
   ggplot(aes(x = as_factor(mes), y = temp_media)) +
   geom_boxplot(fill = "orange4", alpha = 0.7) +
-  labs(title = "Distribuicao mensal da temperatura media", x = "Mes", y = "oC") +
+  labs(title = "Distribuicao mensal da temperatura media", 
+       x = "Mes", y = "oC") +
   theme_minimal()
 ```
 
@@ -177,7 +175,8 @@ dados_climatico |>
 dados_climatico |> 
   ggplot(aes(x = as_factor(mes), y = precipitacao)) +
   geom_boxplot(fill = "skyblue3", alpha = 0.7) +
-  labs(title = "Distribuicao mensal da precipitacao diaria", x = "Mes", y = "mm") +
+  labs(title = "Distribuicao mensal da precipitacao diaria", 
+       x = "Mes", y = "mm") +
   theme_minimal()
 ```
 
@@ -217,9 +216,7 @@ ondas_calor
 ```
 
 ``` r
-# ------------------------------------------------------------
-# 9. Gráfico tipo climograma
-# ------------------------------------------------------------
+# Gráfico tipo climograma
 climograma <- resumo_mensal %>%
   ggplot(aes(x = mes)) +
   geom_col(aes(y = prec_total), fill = "steelblue4", alpha = 0.6) +
