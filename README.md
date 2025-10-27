@@ -18,42 +18,15 @@ library(tidyverse)
 #> Warning: package 'dplyr' was built under R version 4.3.3
 #> Warning: package 'stringr' was built under R version 4.3.3
 #> Warning: package 'lubridate' was built under R version 4.3.3
-#> ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-#> ✔ dplyr     1.1.4     ✔ readr     2.1.5
-#> ✔ forcats   1.0.0     ✔ stringr   1.5.1
-#> ✔ ggplot2   3.5.2     ✔ tibble    3.2.1
-#> ✔ lubridate 1.9.4     ✔ tidyr     1.3.1
-#> ✔ purrr     1.0.4     
-#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-#> ✖ dplyr::filter() masks stats::filter()
-#> ✖ dplyr::lag()    masks stats::lag()
-#> ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
 library(zoo)
-#> 
-#> Attaching package: 'zoo'
-#> 
-#> The following objects are masked from 'package:base':
-#> 
-#>     as.Date, as.Date.numeric
 library(trend)
 #> Warning: package 'trend' was built under R version 4.3.3
 library(ggpubr)
 library(DescTools)
 #> Warning: package 'DescTools' was built under R version 4.3.3
 library(scales)
-#> 
-#> Attaching package: 'scales'
-#> 
-#> The following object is masked from 'package:purrr':
-#> 
-#>     discard
-#> 
-#> The following object is masked from 'package:readr':
-#> 
-#>     col_factor
 library(corrplot)
 #> Warning: package 'corrplot' was built under R version 4.3.3
-#> corrplot 0.95 loaded
 ```
 
 ## Carregando dados
@@ -185,7 +158,6 @@ dados_climatico |>
   geom_smooth(method = "loess", se = FALSE, color = "black") +
   labs(title = "Temperatura media diaria", x = "Data", y = "oC") +
   theme_minimal()
-#> `geom_smooth()` using formula = 'y ~ x'
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
@@ -304,7 +276,6 @@ ggplot(dados_climatico, aes(x = data, y = temp_media)) +
   labs(title = "Tendencia temporal da temperatura media (2020–2025)",
        x = "Data", y = "Temperatura media (oC)") +
   theme_minimal()
-#> `geom_smooth()` using formula = 'y ~ x'
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
