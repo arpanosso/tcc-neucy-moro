@@ -1,5 +1,5 @@
 ---
-output: word_document
+output: github_document
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -300,9 +300,10 @@ dados <- read_rds("data/dados-agregados.rds")
 glimpse(dados)  
 ```
 
-## Análise de grupamento
+## Análise Multivariada por safra
 
 ```{r}
+agrupamentos <- c(4,4,4,4,4)
 safras <- unique(dados$safra)
 epocas <- unique(dados$epoca)
 for(i in seq_along(safras)){
@@ -348,7 +349,7 @@ for(i in seq_along(safras)){
       da_pad_euc<-vegdist(da_pad,"euclidean") 
       da_pad_euc_ward<-hclust(da_pad_euc, method="ward.D")
       da_pad_euc_ward$labels <- cultivar
-      grupo<-cutree(da_pad_euc_ward,2)
+      grupo<-cutree(da_pad_euc_ward,agrupamentos[i])
       d <- da_pad_euc_ward$height
       d_corte <- d[which(d |> diff() == max(diff(d)))]
       plot(da_pad_euc_ward, 
@@ -390,19 +391,18 @@ for(i in seq_along(safras)){
         z = pc3V,
         label = rownames(mc)
       )
-      cat("[Grupo 1]:", paste(cultivar[grupo==1],collapse = "\n"))
-      cat("\n\n")
-      cat("[Grupo 2]:", paste(cultivar[grupo==2],collapse = "\n"))
-      cat("\n\n")
-      # cat("[Grupo 3]:", paste(cultivar[grupo==3],collapse = "\n"))
-      # cat("\n\n")
+      for(k in 1:agrupamentos[i]){
+        cat("[Grupo ", paste(k,"]:",cultivar[grupo==k],collapse = "\n"))
+        cat("\n\n")
+      }
+    
 
       bi_plot <- bip |> 
         ggplot(aes(x=pc1c,y=pc2c,colour = as_factor(grupo))) +
         geom_point(size = 3) +
         theme_minimal() +
         # scale_shape_manual(values=16:18)+
-        scale_color_manual(values=c("#009E73", "#D55E00")) + #"#999999",
+        # scale_color_manual(values=c("#009E73", "#D55E00")) + #"#999999",
         # annotate(geom="text", x=pc1c, y=pc2c, label=cultivar,
         #             color="black",size=.25)+
         geom_vline(aes(xintercept=0),
@@ -415,11 +415,12 @@ for(i in seq_along(safras)){
                  y=rep(0,nv),
                  yend=texto$y,color="black",lwd=.5)+
         geom_label(data=texto,aes(x=x,y=y,label=label),
-                   color="black",angle=0,fontface="bold",size=4,fill="white")+
+                   color="black",angle=0,fontface="bold",size=3,fill="white")+
         labs(x=paste("CP1 (",round(100*ve[1],2),"%)",sep=""),
              y=paste("CP2 (",round(100*ve[2],2),"%)",sep=""),
              color="",shape="")+
-        theme(legend.position = "top")
+        theme(legend.position = "top")+
+        xlim(min(pc1c)*1.5,max(pc1c)*1.5) 
       print(bi_plot)
       
       print("==== Tabela da correlação dos atributos com cada PC ====")
@@ -433,9 +434,151 @@ for(i in seq_along(safras)){
     }
   # }
 }
+
 ```
 
 
+## Análise multivariada total
+
+```{r}
+df_aux <- dados |> 
+  group_by(cultivar) |> 
+  summarise(across(.cols = ap:temp_media_ciclo,
+                   .fns = mean,
+                   .names = "{.col}" 
+                   
+  )) |> 
+  ungroup()
+```
+
+
+```{r}
+dados_aux <- df_aux |>  select(-cultivar,-duracao_floresc,
+                               -duracao_ciclo)
+cultivar <- df_aux$cultivar
+
+mc <- cor(dados_aux)
+fc <- !is.na(mc[1,])
+fl <- !is.na(mc[,1])
+mc <- mc[fc,fl]
+```
+
+
+```{r}
+corrplot(mc[1:6,-(1:6)],method = "color",
+         outline = TRUE,
+         addgrid.col = "darkgray",cl.pos = "r", tl.col = "black",
+         tl.cex = 1, cl.cex = 1,  bg="azure2",
+         # diag = FALSE,
+         addCoef.col = "black",
+         cl.ratio = 0.2,
+         cl.length = 5,
+         number.cex = 0.8
+)
+```
+
+
+```{r}
+nomes <- colnames(mc)
+da_pad<-decostand(dados_aux |> 
+                    select(nomes), 
+                  method = "standardize",
+                  na.rm=TRUE)
+da_pad_euc<-vegdist(da_pad,"euclidean") 
+da_pad_euc_ward<-hclust(da_pad_euc, method="ward.D")
+da_pad_euc_ward$labels <- cultivar
+grupo<-cutree(da_pad_euc_ward,5)
+d <- da_pad_euc_ward$height
+d_corte <- d[which(d |> diff() == max(diff(d)))]
+plot(da_pad_euc_ward, 
+     ylab="Distância Euclidiana",
+     xlab="Acessos", hang=-1,
+     col="blue", las=1,
+     cex=.6,lwd=1.5);box();abline(h=d_corte*1.15)
+```
+
+
+```{r}
+pca <-  prcomp(da_pad,scale.=TRUE)
+# Autovalores
+eig<-pca$sdev^2
+print("==== Autovalores ====")
+print(round(eig,3))
+print("==== % da variância explicada ====")
+ve<-eig/sum(eig)
+print(round(ve,4))
+print("==== % da variância explicada acumulada ====")
+print(round(cumsum(ve),4)*100)
+print("==== Poder Discriminante ====")
+```
+
+
+```{r}
+mcor<-cor(da_pad,pca$x)
+corrplot(mcor)
+```
+
+
+```{r}
+pc1V<-cor(da_pad,pca$x)[,1]/sd(cor(da_pad,pca$x)[,1])
+pc2V<-cor(da_pad,pca$x)[,2]/sd(cor(da_pad,pca$x)[,2])
+pc3V<-cor(da_pad,pca$x)[,3]/sd(cor(da_pad,pca$x)[,3])
+pc1c<-pca$x[,1]/sd(pca$x[,1])
+pc2c<-pca$x[,2]/sd(pca$x[,2])
+pc3c<-pca$x[,3]/sd(pca$x[,3])
+nv<-ncol(mc) # número de variáveis utilizadas na análise
+
+# gráfico biplot
+bip<-data.frame(pc1c,pc2c,pc3c,grupo)
+texto <- data.frame(
+  x = pc1V,
+  y = pc2V,
+  z = pc3V,
+  label = rownames(mc)
+)
+for(k in 1:max(grupo)){
+  cat("[Grupo ", paste0(k,"]: ",cultivar[grupo==k],collapse = "\n"))
+  cat("\n\n")
+}
+
+
+bi_plot <- bip |> 
+  ggplot(aes(x=pc1c,y=pc2c,colour = as_factor(grupo))) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  # scale_shape_manual(values=16:18)+
+  # scale_color_manual(values=c("#009E73", "#D55E00")) + #"#999999",
+  # annotate(geom="text", x=pc1c, y=pc2c, label=cultivar,
+  #             color="black",size=.25)+
+  geom_vline(aes(xintercept=0),
+             color="black", size=1)+
+  geom_hline(aes(yintercept=0),
+             color="black", size=1)+
+  annotate(geom="segment",
+           x=rep(0,nv),
+           xend=texto$x,
+           y=rep(0,nv),
+           yend=texto$y,color="black",lwd=.5)+
+  geom_label(data=texto,aes(x=x,y=y,label=label),
+             color="black",angle=0,fontface="bold",size=3,fill="white")+
+  labs(x=paste("CP1 (",round(100*ve[1],2),"%)",sep=""),
+       y=paste("CP2 (",round(100*ve[2],2),"%)",sep=""),
+       color="",shape="")+
+  theme(legend.position = "top")+
+  xlim(min(pc1c)*1.5,max(pc1c)*1.5) 
+print(bi_plot)
+```
+
+
+```{r}
+ck<-sum(pca$sdev^2>=0.98)
+tabelapca<-vector()
+for( l in 1:ck) tabelapca<-cbind(tabelapca,mcor[,l])
+colnames(tabelapca)<-paste(rep(c("PC"),ck),1:ck,sep="")
+pcat<-round(tabelapca,3)
+tabelapca<-tabelapca[order(abs(tabelapca[,1])),]
+print(tabelapca)
+```
 
 
 

@@ -436,9 +436,10 @@ glimpse(dados)
 #> $ temp_media_ciclo       <dbl> 26.60000, 26.60000, 26.60000, 26.60000, 26.7983…
 ```
 
-## Análise de grupamento
+## Análise Multivariada por safra
 
 ``` r
+agrupamentos <- c(4,4,4,4,4)
 safras <- unique(dados$safra)
 epocas <- unique(dados$epoca)
 for(i in seq_along(safras)){
@@ -484,7 +485,7 @@ for(i in seq_along(safras)){
       da_pad_euc<-vegdist(da_pad,"euclidean") 
       da_pad_euc_ward<-hclust(da_pad_euc, method="ward.D")
       da_pad_euc_ward$labels <- cultivar
-      grupo<-cutree(da_pad_euc_ward,2)
+      grupo<-cutree(da_pad_euc_ward,agrupamentos[i])
       d <- da_pad_euc_ward$height
       d_corte <- d[which(d |> diff() == max(diff(d)))]
       plot(da_pad_euc_ward, 
@@ -526,19 +527,18 @@ for(i in seq_along(safras)){
         z = pc3V,
         label = rownames(mc)
       )
-      cat("[Grupo 1]:", paste(cultivar[grupo==1],collapse = "\n"))
-      cat("\n\n")
-      cat("[Grupo 2]:", paste(cultivar[grupo==2],collapse = "\n"))
-      cat("\n\n")
-      # cat("[Grupo 3]:", paste(cultivar[grupo==3],collapse = "\n"))
-      # cat("\n\n")
+      for(k in 1:agrupamentos[i]){
+        cat("[Grupo ", paste(k,"]:",cultivar[grupo==k],collapse = "\n"))
+        cat("\n\n")
+      }
+    
 
       bi_plot <- bip |> 
         ggplot(aes(x=pc1c,y=pc2c,colour = as_factor(grupo))) +
         geom_point(size = 3) +
         theme_minimal() +
         # scale_shape_manual(values=16:18)+
-        scale_color_manual(values=c("#009E73", "#D55E00")) + #"#999999",
+        # scale_color_manual(values=c("#009E73", "#D55E00")) + #"#999999",
         # annotate(geom="text", x=pc1c, y=pc2c, label=cultivar,
         #             color="black",size=.25)+
         geom_vline(aes(xintercept=0),
@@ -551,11 +551,12 @@ for(i in seq_along(safras)){
                  y=rep(0,nv),
                  yend=texto$y,color="black",lwd=.5)+
         geom_label(data=texto,aes(x=x,y=y,label=label),
-                   color="black",angle=0,fontface="bold",size=4,fill="white")+
+                   color="black",angle=0,fontface="bold",size=3,fill="white")+
         labs(x=paste("CP1 (",round(100*ve[1],2),"%)",sep=""),
              y=paste("CP2 (",round(100*ve[2],2),"%)",sep=""),
              color="",shape="")+
-        theme(legend.position = "top")
+        theme(legend.position = "top")+
+        xlim(min(pc1c)*1.5,max(pc1c)*1.5) 
       print(bi_plot)
       
       print("==== Tabela da correlação dos atributos com cada PC ====")
@@ -593,48 +594,50 @@ for(i in seq_along(safras)){
 ![](README_files/figure-gfm/unnamed-chunk-20-3.png)<!-- -->
 
     #> [1] "==== screeplot ===="
-    #> [Grupo 1]: AGN 8019 IPRO
-    #> BMX Desafio RR
-    #> BMX Olimpo IPRO
-    #> BMX Origem IPRO
-    #> CZ 37B43 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 47B90 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 58B28 IPRO
-    #> HO Cristalino IPRO
-    #> HO Juruena IPRO
-    #> M 8210 IPRO
-    #> M 8372 IPRO
-    #> NEO 750 IPRO
-    #> ST 783 IPRO
-    #> ST 804 IPRO
-    #> ST 830 IPRO
-    #> ST 834 IPRO
+    #> [Grupo  1 ]: AGN 8019 IPRO
+    #> 1 ]: BMX Desafio RR
+    #> 1 ]: CZ 37B43 IPRO
+    #> 1 ]: CZ 37B51 IPRO
+    #> 1 ]: NEO 750 IPRO
+    #> 1 ]: ST 783 IPRO
+    #> 1 ]: ST 804 IPRO
     #> 
-    #> [Grupo 2]: AGN 8019 IPRO
-    #> BMX Desafio RR
-    #> CZ 37B43 IPRO
-    #> CZ 47B90 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 58B28 IPRO
-    #> DM 79I81 IPRO
-    #> HO Cristalino IPRO
-    #> HO Juruena IPRO
-    #> M 8210 IPRO
-    #> M 8372 IPRO
-    #> NEO 750 IPRO
-    #> NK 7777 IPRO
-    #> NK 8301 IPRO
-    #> NK 8448 IPRO
-    #> NS 1657 810
-    #> NS 7700 IPRO
-    #> NS 8300 IPRO
-    #> NS 8400 IPRO
-    #> ST 783 IPRO
-    #> ST 804 IPRO
-    #> ST 830 IPRO
-    #> ST 834 IPRO
+    #> [Grupo  2 ]: AGN 8019 IPRO
+    #> 2 ]: BMX Desafio RR
+    #> 2 ]: CZ 37B43 IPRO
+    #> 2 ]: CZ 47B90 IPRO
+    #> 2 ]: DM 79I81 IPRO
+    #> 2 ]: NEO 750 IPRO
+    #> 2 ]: NK 7777 IPRO
+    #> 2 ]: NS 1657 810
+    #> 2 ]: NS 7700 IPRO
+    #> 2 ]: NS 8300 IPRO
+    #> 
+    #> [Grupo  3 ]: BMX Olimpo IPRO
+    #> 3 ]: BMX Origem IPRO
+    #> 3 ]: CZ 47B90 IPRO
+    #> 3 ]: CZ 48B32 IPRO
+    #> 3 ]: CZ 58B28 IPRO
+    #> 3 ]: HO Cristalino IPRO
+    #> 3 ]: HO Juruena IPRO
+    #> 3 ]: M 8210 IPRO
+    #> 3 ]: M 8372 IPRO
+    #> 3 ]: ST 830 IPRO
+    #> 3 ]: ST 834 IPRO
+    #> 
+    #> [Grupo  4 ]: CZ 48B32 IPRO
+    #> 4 ]: CZ 58B28 IPRO
+    #> 4 ]: HO Cristalino IPRO
+    #> 4 ]: HO Juruena IPRO
+    #> 4 ]: M 8210 IPRO
+    #> 4 ]: M 8372 IPRO
+    #> 4 ]: NK 8301 IPRO
+    #> 4 ]: NK 8448 IPRO
+    #> 4 ]: NS 8400 IPRO
+    #> 4 ]: ST 783 IPRO
+    #> 4 ]: ST 804 IPRO
+    #> 4 ]: ST 830 IPRO
+    #> 4 ]: ST 834 IPRO
 
 ![](README_files/figure-gfm/unnamed-chunk-20-4.png)<!-- -->
 
@@ -707,109 +710,111 @@ for(i in seq_along(safras)){
 ![](README_files/figure-gfm/unnamed-chunk-20-7.png)<!-- -->
 
     #> [1] "==== screeplot ===="
-    #> [Grupo 1]: AGN 8019 IPRO
-    #> AGN 8019 IPRO
-    #> AS 3680 IPRO
-    #> AS 3680 IPRO
-    #> BMX Desafio RR
-    #> BMX Desafio RR
-    #> C 2800 IPRO
-    #> C 2811 IPRO
-    #> C 2834 IPRO
-    #> CZ 36B96 i2x
-    #> CZ 37B39 i2x
-    #> CZ 37B43 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 37B60 IPRO
-    #> CZ 48B18 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 58B28 IPRO
-    #> HO Caiapó IPRO
-    #> HO Caiapó IPRO
-    #> HO Coxim IPRO
-    #> HO Coxim IPRO
-    #> HO Guapó i2x
-    #> HO Mamoré IPRO
-    #> HO Mamoré IPRO
-    #> M 8220 i2x
-    #> M 8220 i2x
-    #> M 8372 IPRO
-    #> M 8372 IPRO
-    #> PP 195 JZ RR
-    #> PP 35 JM IPRO
-    #> PP 39 JM IPRO
-    #> Rio Verde 13
-    #> Rio Verde 26
-    #> Rio Verde 27
-    #> Rio Verde 28
-    #> Rio Verde 29
-    #> Rio Verde 30
-    #> Rio Verde 32
-    #> Rio Verde 45
-    #> Rio Verde 46
-    #> ST 700 i2x
-    #> ST 783 IPRO
-    #> ST 794 i2x
-    #> ST 804 IPRO
-    #> ST 830 IPRO
-    #> Soy Ampla IPRO
-    #> Soy Ampla IPRO
-    #> Soy Combate IPRO
-    #> Soy Impacto IPRO
-    #> Soy Impacto IPRO
-    #> Soy Safira RR
-    #> Soy Safira RR
-    #> TMG 2379 IPRO
+    #> [Grupo  1 ]: AGN 8019 IPRO
+    #> 1 ]: AS 3680 IPRO
+    #> 1 ]: BMX Desafio RR
+    #> 1 ]: HO Caiapó IPRO
+    #> 1 ]: HO Coxim IPRO
+    #> 1 ]: HO Mamoré IPRO
+    #> 1 ]: M 8220 i2x
+    #> 1 ]: M 8372 IPRO
+    #> 1 ]: Soy Ampla IPRO
+    #> 1 ]: Soy Impacto IPRO
+    #> 1 ]: Soy Safira RR
     #> 
-    #> [Grupo 2]: AGN 8019 IPRO
-    #> AS 3680 IPRO
-    #> BMX Desafio RR
-    #> BMX Ultra IPRO
-    #> C 2800 IPRO
-    #> C 2811 IPRO
-    #> C 2834 IPRO
-    #> CZ 36B96 i2x
-    #> CZ 37B39 i2x
-    #> CZ 37B43 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 37B60 IPRO
-    #> CZ 48B18 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 58B23 IPRO
-    #> CZ 58B28 IPRO
-    #> DM 75I74 IPRO
-    #> Dagma 7621 i2x
-    #> Dagma 7921 IPRO
-    #> Dagma 8121 IPRO
-    #> Dagma 8221 i2x
-    #> Dagma 8321 CE
-    #> HO Caiapó IPRO
-    #> HO Coxim IPRO
-    #> HO Guapó i2x
-    #> HO Mamoré IPRO
-    #> M 8220 i2x
-    #> M 8372 IPRO
-    #> PP 195 JZ
-    #> PP 35 JM
-    #> PP 39 JM
-    #> Rio Verde 13
-    #> Rio Verde 26
-    #> Rio Verde 27
-    #> Rio Verde 28
-    #> Rio Verde 29
-    #> Rio Verde 30
-    #> Rio Verde 32
-    #> Rio Verde 45
-    #> Rio Verde 46
-    #> ST 700 i2x
-    #> ST 783 IPRO
-    #> ST 794 i2x
-    #> ST 804 IPRO
-    #> ST 830 IPRO
-    #> Soy Ampla IPRO
-    #> Soy Combate IPRO
-    #> Soy Impacto IPRO
-    #> Soy Safira RR
+    #> [Grupo  2 ]: AGN 8019 IPRO
+    #> 2 ]: BMX Desafio RR
+    #> 2 ]: C 2800 IPRO
+    #> 2 ]: C 2811 IPRO
+    #> 2 ]: C 2834 IPRO
+    #> 2 ]: CZ 37B39 i2x
+    #> 2 ]: CZ 37B43 IPRO
+    #> 2 ]: CZ 37B60 IPRO
+    #> 2 ]: CZ 48B18 IPRO
+    #> 2 ]: CZ 48B32 IPRO
+    #> 2 ]: CZ 58B28 IPRO
+    #> 2 ]: HO Caiapó IPRO
+    #> 2 ]: HO Coxim IPRO
+    #> 2 ]: HO Guapó i2x
+    #> 2 ]: HO Mamoré IPRO
+    #> 2 ]: M 8220 i2x
+    #> 2 ]: M 8372 IPRO
+    #> 2 ]: PP 195 JZ RR
+    #> 2 ]: PP 39 JM IPRO
+    #> 2 ]: Rio Verde 13
+    #> 2 ]: Rio Verde 29
+    #> 2 ]: Rio Verde 30
+    #> 2 ]: Rio Verde 32
+    #> 2 ]: Rio Verde 45
+    #> 2 ]: Rio Verde 46
+    #> 2 ]: ST 783 IPRO
+    #> 2 ]: ST 794 i2x
+    #> 2 ]: ST 804 IPRO
+    #> 2 ]: ST 830 IPRO
+    #> 2 ]: Soy Ampla IPRO
+    #> 2 ]: Soy Impacto IPRO
+    #> 2 ]: TMG 2379 IPRO
+    #> 
+    #> [Grupo  3 ]: AGN 8019 IPRO
+    #> 3 ]: AS 3680 IPRO
+    #> 3 ]: BMX Desafio RR
+    #> 3 ]: BMX Ultra IPRO
+    #> 3 ]: C 2800 IPRO
+    #> 3 ]: C 2811 IPRO
+    #> 3 ]: C 2834 IPRO
+    #> 3 ]: CZ 36B96 i2x
+    #> 3 ]: CZ 37B39 i2x
+    #> 3 ]: CZ 37B43 IPRO
+    #> 3 ]: CZ 37B51 IPRO
+    #> 3 ]: CZ 37B60 IPRO
+    #> 3 ]: CZ 48B18 IPRO
+    #> 3 ]: CZ 48B32 IPRO
+    #> 3 ]: CZ 58B23 IPRO
+    #> 3 ]: CZ 58B28 IPRO
+    #> 3 ]: DM 75I74 IPRO
+    #> 3 ]: Dagma 7621 i2x
+    #> 3 ]: Dagma 7921 IPRO
+    #> 3 ]: Dagma 8121 IPRO
+    #> 3 ]: Dagma 8221 i2x
+    #> 3 ]: Dagma 8321 CE
+    #> 3 ]: HO Caiapó IPRO
+    #> 3 ]: HO Coxim IPRO
+    #> 3 ]: HO Guapó i2x
+    #> 3 ]: HO Mamoré IPRO
+    #> 3 ]: M 8220 i2x
+    #> 3 ]: M 8372 IPRO
+    #> 3 ]: PP 195 JZ
+    #> 3 ]: PP 35 JM
+    #> 3 ]: PP 39 JM
+    #> 3 ]: Rio Verde 13
+    #> 3 ]: Rio Verde 26
+    #> 3 ]: Rio Verde 27
+    #> 3 ]: Rio Verde 28
+    #> 3 ]: Rio Verde 29
+    #> 3 ]: Rio Verde 30
+    #> 3 ]: Rio Verde 32
+    #> 3 ]: Rio Verde 45
+    #> 3 ]: Rio Verde 46
+    #> 3 ]: ST 700 i2x
+    #> 3 ]: ST 783 IPRO
+    #> 3 ]: ST 794 i2x
+    #> 3 ]: ST 804 IPRO
+    #> 3 ]: ST 830 IPRO
+    #> 3 ]: Soy Ampla IPRO
+    #> 3 ]: Soy Combate IPRO
+    #> 3 ]: Soy Impacto IPRO
+    #> 3 ]: Soy Safira RR
+    #> 
+    #> [Grupo  4 ]: AS 3680 IPRO
+    #> 4 ]: CZ 36B96 i2x
+    #> 4 ]: CZ 37B51 IPRO
+    #> 4 ]: PP 35 JM IPRO
+    #> 4 ]: Rio Verde 26
+    #> 4 ]: Rio Verde 27
+    #> 4 ]: Rio Verde 28
+    #> 4 ]: ST 700 i2x
+    #> 4 ]: Soy Combate IPRO
+    #> 4 ]: Soy Safira RR
 
 ![](README_files/figure-gfm/unnamed-chunk-20-8.png)<!-- -->
 
@@ -881,156 +886,158 @@ for(i in seq_along(safras)){
 ![](README_files/figure-gfm/unnamed-chunk-20-11.png)<!-- -->
 
     #> [1] "==== screeplot ===="
-    #> [Grupo 1]: AS 3680 IPRO
-    #> AS 3680 IPRO
-    #> AS 3700 XTD
-    #> AS 3700 XTD
-    #> AS 3707 i2x
-    #> AS 3707 i2x
-    #> AS 3790 IPRO
-    #> AS 3800 i2x
-    #> B 5710 CE
-    #> B 5830 CE
-    #> BMX Ataque i2x
-    #> BMX Ataque i2x
-    #> BMX Bônus IPRO
-    #> BMX Bônus IPRO
-    #> BMX Desafio RR
-    #> BMX Desafio RR
-    #> BMX Olimpo IPRO
-    #> BMX Olimpo IPRO
-    #> Bela 35 IPRO
-    #> Bela 39 IPRO
-    #> Bela 46 IPRO
-    #> Bela 47 i2x
-    #> Bela 64 CE
-    #> C 2732 IPRO
-    #> C 2811 IPRO
-    #> CZ 37B39 i2x
-    #> CZ 37B39 i2x
-    #> CZ 37B43 IPRO
-    #> CZ 37B43 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 37B60 IPRO
-    #> CZ 37B60 IPRO
-    #> CZ 48B01 IPRO
-    #> CZ 48B01 IPRO
-    #> CZ 48B18 IPRO
-    #> CZ 48B18 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 58B23 i2x
-    #> CZ 58B23 i2x
-    #> CZ 58B28 IPRO
-    #> CZ 58B28 IPRO
-    #> Dagma 6822 IPRO
-    #> Dagma 7621 i2x
-    #> Dagma 7921 IPRO
-    #> Dagma 8121 IPRO
-    #> Dagma 8221 i2x
-    #> Dagma 8321 CE
-    #> EXP WS 29 IPRO
-    #> Ellas Elisa IPRO
-    #> Ellas Elisa IPRO
-    #> Ellas Manu IPRO
-    #> Ellas Paula IPRO
-    #> FT 3282 IPRO
-    #> FT 3771 IPRO
-    #> GH 2282 IPRO
-    #> GH 2282 IPRO
-    #> GH 2376 IPRO
-    #> GH 2376 IPRO
-    #> GH 2384 IPRO
-    #> GH 2384 IPRO
-    #> GH 2478 IPRO
-    #> GH 2478 IPRO
-    #> HO Coari i2x
-    #> HO Guapó i2x
-    #> HO Guapó i2x
-    #> HO Itiquira IPRO
-    #> M 8220 i2x
-    #> M 8220 i2x
-    #> NK 7010 IPRO
-    #> NK 7777 IPRO
-    #> NK 8100 IPRO
-    #> PP Aguerrida IPRO
-    #> PP Aguerrida IPRO
-    #> PP Avanço IPRO
-    #> PP Avanço IPRO
-    #> PP Grandeza IPRO
-    #> PP Grandeza IPRO
-    #> PP Peleia IPRO
-    #> PP Peleia IPRO
-    #> ST 700 i2x
-    #> ST 752 i2x
-    #> ST 783 IPRO
-    #> VA 79A IPRO
-    #> VA 79A IPRO
-    #> VA 84A IPRO
-    #> VA 84A IPRO
+    #> [Grupo  1 ]: AS 3680 IPRO
+    #> 1 ]: AS 3700 XTD
+    #> 1 ]: AS 3707 i2x
+    #> 1 ]: BMX Desafio RR
+    #> 1 ]: BMX Olimpo IPRO
+    #> 1 ]: CZ 37B39 i2x
+    #> 1 ]: CZ 37B43 IPRO
+    #> 1 ]: CZ 37B51 IPRO
+    #> 1 ]: CZ 37B60 IPRO
+    #> 1 ]: Ellas Elisa IPRO
+    #> 1 ]: GH 2376 IPRO
+    #> 1 ]: HO Guapó i2x
+    #> 1 ]: PP Aguerrida IPRO
+    #> 1 ]: PP Peleia IPRO
     #> 
-    #> [Grupo 2]: AS 3680 IPRO
-    #> AS 3700 XTD
-    #> AS 3707 i2x
-    #> AS 3790 IPRO
-    #> AS 3800 i2x
-    #> B 5710 CE
-    #> B 5830 CE
-    #> BMX Ataque i2x
-    #> BMX Bônus IPRO
-    #> BMX Desafio RR
-    #> BMX Olimpo IPRO
-    #> Bela 35 IPRO
-    #> Bela 39 IPRO
-    #> Bela 45 IPRO
-    #> Bela 46 IPRO
-    #> Bela 47 i2x
-    #> Bela 64 CE
-    #> C 2732 IPRO
-    #> C 2811 IPRO
-    #> CZ 37B39 i2x
-    #> CZ 37B43 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 37B60 IPRO
-    #> CZ 48B01 IPRO
-    #> CZ 48B18 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 58B23 i2x
-    #> CZ 58B28 IPRO
-    #> Dagma 6822 IPRO
-    #> Dagma 7621 i2x
-    #> Dagma 7921 IPRO
-    #> Dagma 8121 IPRO
-    #> Dagma 8221 i2x
-    #> Dagma 8321 CE
-    #> EXP WS 29 IPRO
-    #> Ellas Elisa IPRO
-    #> Ellas Manu IPRO
-    #> Ellas Paula IPRO
-    #> FT 3282 IPRO
-    #> FT 3771 IPRO
-    #> GH 2282 IPRO
-    #> GH 2376 IPRO
-    #> GH 2384 IPRO
-    #> GH 2478 IPRO
-    #> HO Coari i2x
-    #> HO Guapó i2x
-    #> HO Itiquira IPRO
-    #> M 8220 i2x
-    #> NK 7010 IPRO
-    #> NK 7777 IPRO
-    #> NK 8100 IPRO
-    #> PP Aguerrida IPRO
-    #> PP Avanço IPRO
-    #> PP Grandeza IPRO
-    #> PP Peleia IPRO
-    #> ST 700 i2x
-    #> ST 752 i2x
-    #> ST 783 IPRO
-    #> Soy Combate IPRO
-    #> VA 79A IPRO
-    #> VA 84A IPRO
+    #> [Grupo  2 ]: AS 3680 IPRO
+    #> 2 ]: AS 3700 XTD
+    #> 2 ]: AS 3707 i2x
+    #> 2 ]: AS 3790 IPRO
+    #> 2 ]: AS 3800 i2x
+    #> 2 ]: B 5710 CE
+    #> 2 ]: B 5830 CE
+    #> 2 ]: BMX Ataque i2x
+    #> 2 ]: BMX Ataque i2x
+    #> 2 ]: BMX Bônus IPRO
+    #> 2 ]: BMX Bônus IPRO
+    #> 2 ]: BMX Desafio RR
+    #> 2 ]: BMX Olimpo IPRO
+    #> 2 ]: Bela 35 IPRO
+    #> 2 ]: Bela 39 IPRO
+    #> 2 ]: Bela 46 IPRO
+    #> 2 ]: Bela 47 i2x
+    #> 2 ]: Bela 64 CE
+    #> 2 ]: C 2732 IPRO
+    #> 2 ]: C 2811 IPRO
+    #> 2 ]: CZ 37B39 i2x
+    #> 2 ]: CZ 37B43 IPRO
+    #> 2 ]: CZ 37B51 IPRO
+    #> 2 ]: CZ 37B60 IPRO
+    #> 2 ]: CZ 48B01 IPRO
+    #> 2 ]: CZ 48B01 IPRO
+    #> 2 ]: CZ 48B18 IPRO
+    #> 2 ]: CZ 48B18 IPRO
+    #> 2 ]: CZ 48B32 IPRO
+    #> 2 ]: CZ 48B32 IPRO
+    #> 2 ]: CZ 58B23 i2x
+    #> 2 ]: CZ 58B23 i2x
+    #> 2 ]: CZ 58B28 IPRO
+    #> 2 ]: CZ 58B28 IPRO
+    #> 2 ]: Dagma 6822 IPRO
+    #> 2 ]: Dagma 7621 i2x
+    #> 2 ]: Dagma 7921 IPRO
+    #> 2 ]: Dagma 8121 IPRO
+    #> 2 ]: Dagma 8221 i2x
+    #> 2 ]: Dagma 8321 CE
+    #> 2 ]: EXP WS 29 IPRO
+    #> 2 ]: Ellas Elisa IPRO
+    #> 2 ]: Ellas Manu IPRO
+    #> 2 ]: Ellas Paula IPRO
+    #> 2 ]: FT 3282 IPRO
+    #> 2 ]: FT 3771 IPRO
+    #> 2 ]: GH 2282 IPRO
+    #> 2 ]: GH 2282 IPRO
+    #> 2 ]: GH 2376 IPRO
+    #> 2 ]: GH 2384 IPRO
+    #> 2 ]: GH 2384 IPRO
+    #> 2 ]: GH 2478 IPRO
+    #> 2 ]: GH 2478 IPRO
+    #> 2 ]: HO Coari i2x
+    #> 2 ]: HO Guapó i2x
+    #> 2 ]: HO Itiquira IPRO
+    #> 2 ]: M 8220 i2x
+    #> 2 ]: M 8220 i2x
+    #> 2 ]: NK 7010 IPRO
+    #> 2 ]: NK 7777 IPRO
+    #> 2 ]: NK 8100 IPRO
+    #> 2 ]: PP Aguerrida IPRO
+    #> 2 ]: PP Avanço IPRO
+    #> 2 ]: PP Avanço IPRO
+    #> 2 ]: PP Grandeza IPRO
+    #> 2 ]: PP Grandeza IPRO
+    #> 2 ]: PP Peleia IPRO
+    #> 2 ]: ST 700 i2x
+    #> 2 ]: ST 752 i2x
+    #> 2 ]: ST 783 IPRO
+    #> 2 ]: VA 79A IPRO
+    #> 2 ]: VA 79A IPRO
+    #> 2 ]: VA 84A IPRO
+    #> 2 ]: VA 84A IPRO
+    #> 
+    #> [Grupo  3 ]: AS 3680 IPRO
+    #> 3 ]: AS 3700 XTD
+    #> 3 ]: AS 3707 i2x
+    #> 3 ]: AS 3790 IPRO
+    #> 3 ]: AS 3800 i2x
+    #> 3 ]: B 5710 CE
+    #> 3 ]: BMX Desafio RR
+    #> 3 ]: Bela 39 IPRO
+    #> 3 ]: Bela 46 IPRO
+    #> 3 ]: Bela 47 i2x
+    #> 3 ]: Bela 64 CE
+    #> 3 ]: C 2732 IPRO
+    #> 3 ]: CZ 37B39 i2x
+    #> 3 ]: CZ 37B43 IPRO
+    #> 3 ]: CZ 37B51 IPRO
+    #> 3 ]: CZ 37B60 IPRO
+    #> 3 ]: CZ 48B18 IPRO
+    #> 3 ]: Dagma 6822 IPRO
+    #> 3 ]: Dagma 7621 i2x
+    #> 3 ]: Dagma 7921 IPRO
+    #> 3 ]: Ellas Elisa IPRO
+    #> 3 ]: Ellas Manu IPRO
+    #> 3 ]: FT 3771 IPRO
+    #> 3 ]: GH 2376 IPRO
+    #> 3 ]: GH 2384 IPRO
+    #> 3 ]: HO Guapó i2x
+    #> 3 ]: NK 7010 IPRO
+    #> 3 ]: NK 7777 IPRO
+    #> 3 ]: PP Aguerrida IPRO
+    #> 3 ]: PP Peleia IPRO
+    #> 3 ]: ST 700 i2x
+    #> 3 ]: ST 752 i2x
+    #> 3 ]: Soy Combate IPRO
+    #> 
+    #> [Grupo  4 ]: B 5830 CE
+    #> 4 ]: BMX Ataque i2x
+    #> 4 ]: BMX Bônus IPRO
+    #> 4 ]: BMX Olimpo IPRO
+    #> 4 ]: Bela 35 IPRO
+    #> 4 ]: Bela 45 IPRO
+    #> 4 ]: C 2811 IPRO
+    #> 4 ]: CZ 48B01 IPRO
+    #> 4 ]: CZ 48B32 IPRO
+    #> 4 ]: CZ 58B23 i2x
+    #> 4 ]: CZ 58B28 IPRO
+    #> 4 ]: Dagma 8121 IPRO
+    #> 4 ]: Dagma 8221 i2x
+    #> 4 ]: Dagma 8321 CE
+    #> 4 ]: EXP WS 29 IPRO
+    #> 4 ]: Ellas Paula IPRO
+    #> 4 ]: FT 3282 IPRO
+    #> 4 ]: GH 2282 IPRO
+    #> 4 ]: GH 2478 IPRO
+    #> 4 ]: HO Coari i2x
+    #> 4 ]: HO Itiquira IPRO
+    #> 4 ]: M 8220 i2x
+    #> 4 ]: NK 8100 IPRO
+    #> 4 ]: PP Avanço IPRO
+    #> 4 ]: PP Grandeza IPRO
+    #> 4 ]: ST 783 IPRO
+    #> 4 ]: VA 79A IPRO
+    #> 4 ]: VA 84A IPRO
 
 ![](README_files/figure-gfm/unnamed-chunk-20-12.png)<!-- -->
 
@@ -1102,258 +1109,260 @@ for(i in seq_along(safras)){
 ![](README_files/figure-gfm/unnamed-chunk-20-15.png)<!-- -->
 
     #> [1] "==== screeplot ===="
-    #> [Grupo 1]: 76EA72
-    #> 76EA72
-    #> 78KA42
-    #> 78KA42
-    #> AS 3640 i2x
-    #> AS 3640 i2x
-    #> AS 3700 XTD
-    #> AS 3700 XTD
-    #> AS 3707 i2x
-    #> AS 3707 i2x
-    #> AS 3790 i2x
-    #> AS 3790 i2x
-    #> AS 3800 i2x
-    #> AS 3800 i2x
-    #> AS 3840 i2x
-    #> B66C22
-    #> B72C22
-    #> B75C22
-    #> BMX Desafio RR
-    #> BMX Desafio RR
-    #> BMX Olimpo IPRO
-    #> BMX Olimpo IPRO
-    #> BMX Sparta i2x
-    #> BMX Tormenta CE
-    #> BMX Tormenta CE
-    #> BRS 1061 IPRO
-    #> BRS 1075 IPRO
-    #> BRS 774 RR
-    #> BRSMG 534
-    #> Bela Cultivar 03 i2x
-    #> Bela Cultivar 61 i2x
-    #> Bela Cultivar 64 i2x
-    #> Bela Cultivar 65 i2x
-    #> Bela Cultivar 66 CE
-    #> Bela Cultivar 67 i2x
-    #> CZ 37B07 i2x
-    #> CZ 37B39 i2x
-    #> CZ 37B43 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 37B66 i2x
-    #> CZ 47B74 i2x
-    #> CZ 48B01 i2x
-    #> CZ 48B08 i2x
-    #> CZ 48B18 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 58B23 i2x
-    #> CZ 58B48 i2x
-    #> Ellas Dani i2x
-    #> Ellas Lynda IPRO
-    #> GH 2282 IPRO
-    #> GH 2282 IPRO
-    #> GH 2376 IPRO
-    #> GH 2376 IPRO
-    #> GH 2478 IPRO
-    #> GH 2478 IPRO
-    #> GH 2483 IPRO
-    #> GH 2483 IPRO
-    #> HO Coari i2x
-    #> HO Coxim IPRO
-    #> HO Maracaí IPRO
-    #> HO Maracaí IPRO
-    #> HO Mogi i2x
-    #> HO Mutum i2x
-    #> M 7601 i2x
-    #> M 8220 i2x
-    #> M 8220 i2x
-    #> NK 7010 IPRO
-    #> NK 7010 IPRO
-    #> PP Atenas IPRO
-    #> PP Atenas IPRO
-    #> PP Bagual IPRO
-    #> PP Bagual IPRO
-    #> PP Brutus IPRO
-    #> PP Brutus IPRO
-    #> PP Campeira IPRO
-    #> PP Campeira IPRO
-    #> PP Colibri IPRO
-    #> PP Colibri IPRO
-    #> PP Destaque IPRO
-    #> PP Destaque IPRO
-    #> PP Grandeza IPRO
-    #> PP Grandeza IPRO
-    #> PP Lenda IPRO
-    #> PP Lenda IPRO
-    #> PP Peleia IPRO
-    #> PP Peleia IPRO
-    #> ST 711 i2x
-    #> ST 752 i2x
-    #> ST 822 i2x
-    #> TMG 22-206 E
-    #> TMG 22-206 E
-    #> TMG 22-210 i2x
-    #> TMG 22-210 i2x
-    #> TMG 22-213 i2x
-    #> TMG 22-213 i2x
-    #> TMG 22X77 i2x
-    #> TMG 22X77 i2x
-    #> TMG 22X83 i2x
-    #> TMG 22X83 i2x
-    #> UFVS 77 C10
-    #> VA 7209 IPRO
-    #> VA 7310 IPRO
-    #> WS 053 IPRO
-    #> WS 054 IPRO
+    #> [Grupo  1 ]: 76EA72
+    #> 1 ]: 78KA42
+    #> 1 ]: AS 3640 i2x
+    #> 1 ]: AS 3700 XTD
+    #> 1 ]: AS 3707 i2x
+    #> 1 ]: AS 3790 i2x
+    #> 1 ]: AS 3800 i2x
+    #> 1 ]: BMX Desafio RR
+    #> 1 ]: BMX Olimpo IPRO
+    #> 1 ]: BMX Tormenta CE
+    #> 1 ]: CZ 48B32 IPRO
+    #> 1 ]: GH 2282 IPRO
+    #> 1 ]: GH 2376 IPRO
+    #> 1 ]: GH 2478 IPRO
+    #> 1 ]: GH 2483 IPRO
+    #> 1 ]: HO Maracaí IPRO
+    #> 1 ]: M 8220 i2x
+    #> 1 ]: NK 7010 IPRO
+    #> 1 ]: PP Atenas IPRO
+    #> 1 ]: PP Bagual IPRO
+    #> 1 ]: PP Brutus IPRO
+    #> 1 ]: PP Campeira IPRO
+    #> 1 ]: PP Colibri IPRO
+    #> 1 ]: PP Destaque IPRO
+    #> 1 ]: PP Grandeza IPRO
+    #> 1 ]: PP Lenda IPRO
+    #> 1 ]: PP Peleia IPRO
+    #> 1 ]: TMG 22-206 E
+    #> 1 ]: TMG 22-210 i2x
+    #> 1 ]: TMG 22-213 i2x
+    #> 1 ]: TMG 22X77 i2x
+    #> 1 ]: TMG 22X83 i2x
     #> 
-    #> [Grupo 2]: 76EA72
-    #> 76EA72
-    #> 78KA42
-    #> 78KA42
-    #> AS 3640 i2x
-    #> AS 3640 i2x
-    #> AS 3700 XTD
-    #> AS 3700 XTD
-    #> AS 3707 i2x
-    #> AS 3707 i2x
-    #> AS 3790 i2x
-    #> AS 3790 i2x
-    #> AS 3800 i2x
-    #> AS 3800 i2x
-    #> AS 3840 i2x
-    #> AS 3840 i2x
-    #> B66C22
-    #> B66C22
-    #> B72C22
-    #> B72C22
-    #> B75C22
-    #> B75C22
-    #> BMX Desafio RR
-    #> BMX Desafio RR
-    #> BMX Olimpo IPRO
-    #> BMX Olimpo IPRO
-    #> BMX Sparta i2x
-    #> BMX Sparta i2x
-    #> BMX Tormenta CE
-    #> BMX Tormenta CE
-    #> BRS 1061 IPRO
-    #> BRS 1061 IPRO
-    #> BRS 1075 IPRO
-    #> BRS 1075 IPRO
-    #> BRS 774 RR
-    #> BRS 774 RR
-    #> BRSMG 534
-    #> BRSMG 534
-    #> Bela Cultivar 03 i2x
-    #> Bela Cultivar 03 i2x
-    #> Bela Cultivar 61 i2x
-    #> Bela Cultivar 61 i2x
-    #> Bela Cultivar 64 i2x
-    #> Bela Cultivar 64 i2x
-    #> Bela Cultivar 65 i2x
-    #> Bela Cultivar 65 i2x
-    #> Bela Cultivar 66 CE
-    #> Bela Cultivar 66 CE
-    #> Bela Cultivar 67 i2x
-    #> Bela Cultivar 67 i2x
-    #> CZ 37B07 i2x
-    #> CZ 37B07 i2x
-    #> CZ 37B39 i2x
-    #> CZ 37B39 i2x
-    #> CZ 37B43 IPRO
-    #> CZ 37B43 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 37B66 i2x
-    #> CZ 37B66 i2x
-    #> CZ 47B74 i2x
-    #> CZ 47B74 i2x
-    #> CZ 48B01 i2x
-    #> CZ 48B01 i2x
-    #> CZ 48B08 i2x
-    #> CZ 48B08 i2x
-    #> CZ 48B18 IPRO
-    #> CZ 48B18 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 58B23 i2x
-    #> CZ 58B23 i2x
-    #> CZ 58B48 i2x
-    #> CZ 58B48 i2x
-    #> Ellas Dani i2x
-    #> Ellas Dani i2x
-    #> Ellas Lynda IPRO
-    #> Ellas Lynda IPRO
-    #> GH 2282 IPRO
-    #> GH 2282 IPRO
-    #> GH 2376 IPRO
-    #> GH 2376 IPRO
-    #> GH 2478 IPRO
-    #> GH 2478 IPRO
-    #> GH 2483 IPRO
-    #> GH 2483 IPRO
-    #> HO Coari i2x
-    #> HO Coari i2x
-    #> HO Coxim IPRO
-    #> HO Coxim IPRO
-    #> HO Maracaí IPRO
-    #> HO Maracaí IPRO
-    #> HO Mogi i2x
-    #> HO Mogi i2x
-    #> HO Mutum i2x
-    #> HO Mutum i2x
-    #> M 7601 i2x
-    #> M 7601 i2x
-    #> M 8220 i2x
-    #> M 8220 i2x
-    #> NK 7010 IPRO
-    #> NK 7010 IPRO
-    #> PP Atenas IPRO
-    #> PP Atenas IPRO
-    #> PP Bagual IPRO
-    #> PP Bagual IPRO
-    #> PP Brutus IPRO
-    #> PP Brutus IPRO
-    #> PP Campeira IPRO
-    #> PP Campeira IPRO
-    #> PP Colibri IPRO
-    #> PP Colibri IPRO
-    #> PP Destaque IPRO
-    #> PP Destaque IPRO
-    #> PP Grandeza IPRO
-    #> PP Grandeza IPRO
-    #> PP Lenda IPRO
-    #> PP Lenda IPRO
-    #> PP Peleia IPRO
-    #> PP Peleia IPRO
-    #> ST 711 i2x
-    #> ST 711 i2x
-    #> ST 752 i2x
-    #> ST 752 i2x
-    #> ST 822 i2x
-    #> ST 822 i2x
-    #> TMG 22-206 E
-    #> TMG 22-206 E
-    #> TMG 22-210 i2x
-    #> TMG 22-210 i2x
-    #> TMG 22-213 i2x
-    #> TMG 22-213 i2x
-    #> TMG 22X77 i2x
-    #> TMG 22X77 i2x
-    #> TMG 22X83 i2x
-    #> TMG 22X83 i2x
-    #> UFVS 77 C10
-    #> UFVS 77 C10
-    #> VA 7209 IPRO
-    #> VA 7209 IPRO
-    #> VA 7310 IPRO
-    #> VA 7310 IPRO
-    #> WS 053 IPRO
-    #> WS 053 IPRO
-    #> WS 054 IPRO
-    #> WS 054 IPRO
+    #> [Grupo  2 ]: 76EA72
+    #> 2 ]: 78KA42
+    #> 2 ]: AS 3640 i2x
+    #> 2 ]: AS 3700 XTD
+    #> 2 ]: AS 3707 i2x
+    #> 2 ]: AS 3790 i2x
+    #> 2 ]: AS 3800 i2x
+    #> 2 ]: AS 3840 i2x
+    #> 2 ]: B66C22
+    #> 2 ]: B72C22
+    #> 2 ]: B75C22
+    #> 2 ]: BMX Desafio RR
+    #> 2 ]: BMX Olimpo IPRO
+    #> 2 ]: BMX Sparta i2x
+    #> 2 ]: BMX Tormenta CE
+    #> 2 ]: BRS 1061 IPRO
+    #> 2 ]: BRS 1075 IPRO
+    #> 2 ]: BRS 774 RR
+    #> 2 ]: BRSMG 534
+    #> 2 ]: Bela Cultivar 03 i2x
+    #> 2 ]: Bela Cultivar 61 i2x
+    #> 2 ]: Bela Cultivar 64 i2x
+    #> 2 ]: Bela Cultivar 65 i2x
+    #> 2 ]: Bela Cultivar 66 CE
+    #> 2 ]: Bela Cultivar 67 i2x
+    #> 2 ]: CZ 37B07 i2x
+    #> 2 ]: CZ 37B39 i2x
+    #> 2 ]: CZ 37B43 IPRO
+    #> 2 ]: CZ 37B51 IPRO
+    #> 2 ]: CZ 37B66 i2x
+    #> 2 ]: CZ 47B74 i2x
+    #> 2 ]: CZ 48B01 i2x
+    #> 2 ]: CZ 48B08 i2x
+    #> 2 ]: CZ 48B18 IPRO
+    #> 2 ]: CZ 48B32 IPRO
+    #> 2 ]: CZ 58B23 i2x
+    #> 2 ]: CZ 58B48 i2x
+    #> 2 ]: Ellas Dani i2x
+    #> 2 ]: Ellas Lynda IPRO
+    #> 2 ]: GH 2282 IPRO
+    #> 2 ]: GH 2376 IPRO
+    #> 2 ]: GH 2478 IPRO
+    #> 2 ]: GH 2483 IPRO
+    #> 2 ]: HO Coari i2x
+    #> 2 ]: HO Coxim IPRO
+    #> 2 ]: HO Maracaí IPRO
+    #> 2 ]: HO Mogi i2x
+    #> 2 ]: HO Mutum i2x
+    #> 2 ]: M 7601 i2x
+    #> 2 ]: M 8220 i2x
+    #> 2 ]: NK 7010 IPRO
+    #> 2 ]: PP Atenas IPRO
+    #> 2 ]: PP Bagual IPRO
+    #> 2 ]: PP Brutus IPRO
+    #> 2 ]: PP Campeira IPRO
+    #> 2 ]: PP Colibri IPRO
+    #> 2 ]: PP Destaque IPRO
+    #> 2 ]: PP Grandeza IPRO
+    #> 2 ]: PP Lenda IPRO
+    #> 2 ]: PP Peleia IPRO
+    #> 2 ]: ST 711 i2x
+    #> 2 ]: ST 752 i2x
+    #> 2 ]: ST 822 i2x
+    #> 2 ]: TMG 22-206 E
+    #> 2 ]: TMG 22-210 i2x
+    #> 2 ]: TMG 22-213 i2x
+    #> 2 ]: TMG 22X77 i2x
+    #> 2 ]: TMG 22X83 i2x
+    #> 2 ]: UFVS 77 C10
+    #> 2 ]: VA 7209 IPRO
+    #> 2 ]: VA 7310 IPRO
+    #> 2 ]: WS 053 IPRO
+    #> 2 ]: WS 054 IPRO
+    #> 
+    #> [Grupo  3 ]: 76EA72
+    #> 3 ]: 78KA42
+    #> 3 ]: AS 3640 i2x
+    #> 3 ]: AS 3700 XTD
+    #> 3 ]: AS 3707 i2x
+    #> 3 ]: AS 3790 i2x
+    #> 3 ]: AS 3800 i2x
+    #> 3 ]: AS 3840 i2x
+    #> 3 ]: B66C22
+    #> 3 ]: B72C22
+    #> 3 ]: B75C22
+    #> 3 ]: BMX Desafio RR
+    #> 3 ]: BMX Olimpo IPRO
+    #> 3 ]: BMX Sparta i2x
+    #> 3 ]: BMX Tormenta CE
+    #> 3 ]: BRS 1061 IPRO
+    #> 3 ]: BRS 1075 IPRO
+    #> 3 ]: BRS 774 RR
+    #> 3 ]: BRSMG 534
+    #> 3 ]: Bela Cultivar 03 i2x
+    #> 3 ]: Bela Cultivar 61 i2x
+    #> 3 ]: Bela Cultivar 64 i2x
+    #> 3 ]: Bela Cultivar 65 i2x
+    #> 3 ]: Bela Cultivar 66 CE
+    #> 3 ]: Bela Cultivar 67 i2x
+    #> 3 ]: CZ 37B07 i2x
+    #> 3 ]: CZ 37B39 i2x
+    #> 3 ]: CZ 37B43 IPRO
+    #> 3 ]: CZ 37B51 IPRO
+    #> 3 ]: CZ 37B66 i2x
+    #> 3 ]: CZ 47B74 i2x
+    #> 3 ]: CZ 48B01 i2x
+    #> 3 ]: CZ 48B08 i2x
+    #> 3 ]: CZ 48B18 IPRO
+    #> 3 ]: CZ 58B23 i2x
+    #> 3 ]: Ellas Dani i2x
+    #> 3 ]: Ellas Lynda IPRO
+    #> 3 ]: GH 2376 IPRO
+    #> 3 ]: GH 2478 IPRO
+    #> 3 ]: GH 2483 IPRO
+    #> 3 ]: HO Coari i2x
+    #> 3 ]: HO Coxim IPRO
+    #> 3 ]: HO Maracaí IPRO
+    #> 3 ]: HO Mogi i2x
+    #> 3 ]: HO Mutum i2x
+    #> 3 ]: M 7601 i2x
+    #> 3 ]: M 8220 i2x
+    #> 3 ]: NK 7010 IPRO
+    #> 3 ]: PP Bagual IPRO
+    #> 3 ]: PP Campeira IPRO
+    #> 3 ]: PP Colibri IPRO
+    #> 3 ]: PP Destaque IPRO
+    #> 3 ]: PP Peleia IPRO
+    #> 3 ]: ST 711 i2x
+    #> 3 ]: ST 752 i2x
+    #> 3 ]: ST 822 i2x
+    #> 3 ]: TMG 22-206 E
+    #> 3 ]: TMG 22-210 i2x
+    #> 3 ]: TMG 22-213 i2x
+    #> 3 ]: TMG 22X77 i2x
+    #> 3 ]: TMG 22X83 i2x
+    #> 3 ]: UFVS 77 C10
+    #> 3 ]: VA 7209 IPRO
+    #> 3 ]: VA 7310 IPRO
+    #> 3 ]: WS 053 IPRO
+    #> 3 ]: WS 054 IPRO
+    #> 
+    #> [Grupo  4 ]: 76EA72
+    #> 4 ]: 78KA42
+    #> 4 ]: AS 3640 i2x
+    #> 4 ]: AS 3700 XTD
+    #> 4 ]: AS 3707 i2x
+    #> 4 ]: AS 3790 i2x
+    #> 4 ]: AS 3800 i2x
+    #> 4 ]: AS 3840 i2x
+    #> 4 ]: B66C22
+    #> 4 ]: B72C22
+    #> 4 ]: B75C22
+    #> 4 ]: BMX Desafio RR
+    #> 4 ]: BMX Olimpo IPRO
+    #> 4 ]: BMX Sparta i2x
+    #> 4 ]: BMX Tormenta CE
+    #> 4 ]: BRS 1061 IPRO
+    #> 4 ]: BRS 1075 IPRO
+    #> 4 ]: BRS 774 RR
+    #> 4 ]: BRSMG 534
+    #> 4 ]: Bela Cultivar 03 i2x
+    #> 4 ]: Bela Cultivar 61 i2x
+    #> 4 ]: Bela Cultivar 64 i2x
+    #> 4 ]: Bela Cultivar 65 i2x
+    #> 4 ]: Bela Cultivar 66 CE
+    #> 4 ]: Bela Cultivar 67 i2x
+    #> 4 ]: CZ 37B07 i2x
+    #> 4 ]: CZ 37B39 i2x
+    #> 4 ]: CZ 37B43 IPRO
+    #> 4 ]: CZ 37B51 IPRO
+    #> 4 ]: CZ 37B66 i2x
+    #> 4 ]: CZ 47B74 i2x
+    #> 4 ]: CZ 48B01 i2x
+    #> 4 ]: CZ 48B08 i2x
+    #> 4 ]: CZ 48B18 IPRO
+    #> 4 ]: CZ 48B32 IPRO
+    #> 4 ]: CZ 48B32 IPRO
+    #> 4 ]: CZ 58B23 i2x
+    #> 4 ]: CZ 58B48 i2x
+    #> 4 ]: CZ 58B48 i2x
+    #> 4 ]: Ellas Dani i2x
+    #> 4 ]: Ellas Lynda IPRO
+    #> 4 ]: GH 2282 IPRO
+    #> 4 ]: GH 2282 IPRO
+    #> 4 ]: GH 2376 IPRO
+    #> 4 ]: GH 2478 IPRO
+    #> 4 ]: GH 2483 IPRO
+    #> 4 ]: HO Coari i2x
+    #> 4 ]: HO Coxim IPRO
+    #> 4 ]: HO Maracaí IPRO
+    #> 4 ]: HO Mogi i2x
+    #> 4 ]: HO Mutum i2x
+    #> 4 ]: M 7601 i2x
+    #> 4 ]: M 8220 i2x
+    #> 4 ]: NK 7010 IPRO
+    #> 4 ]: PP Atenas IPRO
+    #> 4 ]: PP Atenas IPRO
+    #> 4 ]: PP Bagual IPRO
+    #> 4 ]: PP Brutus IPRO
+    #> 4 ]: PP Brutus IPRO
+    #> 4 ]: PP Campeira IPRO
+    #> 4 ]: PP Colibri IPRO
+    #> 4 ]: PP Destaque IPRO
+    #> 4 ]: PP Grandeza IPRO
+    #> 4 ]: PP Grandeza IPRO
+    #> 4 ]: PP Lenda IPRO
+    #> 4 ]: PP Lenda IPRO
+    #> 4 ]: PP Peleia IPRO
+    #> 4 ]: ST 711 i2x
+    #> 4 ]: ST 752 i2x
+    #> 4 ]: ST 822 i2x
+    #> 4 ]: TMG 22-206 E
+    #> 4 ]: TMG 22-210 i2x
+    #> 4 ]: TMG 22-213 i2x
+    #> 4 ]: TMG 22X77 i2x
+    #> 4 ]: TMG 22X83 i2x
+    #> 4 ]: UFVS 77 C10
+    #> 4 ]: VA 7209 IPRO
+    #> 4 ]: VA 7310 IPRO
+    #> 4 ]: WS 053 IPRO
+    #> 4 ]: WS 054 IPRO
 
 ![](README_files/figure-gfm/unnamed-chunk-20-16.png)<!-- -->
 
@@ -1425,313 +1434,315 @@ for(i in seq_along(safras)){
 ![](README_files/figure-gfm/unnamed-chunk-20-19.png)<!-- -->
 
     #> [1] "==== screeplot ===="
-    #> [Grupo 1]: 76KA72
-    #> 76KA72
-    #> 78KA42
-    #> 78KA42
-    #> 79KA72
-    #> 79KA72
-    #> 80KA72
-    #> 80KA72
-    #> AS 3640 i2x
-    #> AS 3640 i2x
-    #> AS 3700 XTD
-    #> AS 3700 XTD
-    #> AS 3707 i2x
-    #> AS 3707 i2x
-    #> AS 3715 i2x
-    #> AS 3715 i2x
-    #> AS 3790 i2x
-    #> AS 3790 i2x
-    #> AS 3800 i2x
-    #> AS 3800 i2x
-    #> AS 3840 i2x
-    #> AS 3840 i2x
-    #> B66C22
-    #> B66C22
-    #> B72C22
-    #> B72C22
-    #> B75C22
-    #> B75C22
-    #> B76C23
-    #> B80C23
-    #> B80C23
-    #> BMX Cobre i2x
-    #> BMX Cobre i2x
-    #> BMX Cruzada CE
-    #> BMX Desafio RR
-    #> BMX Desafio RR
-    #> BMX Guepardo IPRO
-    #> BMX Guepardo IPRO
-    #> BMX Mítica CE
-    #> BMX Mítica CE
-    #> BMX Olimpo IPRO
-    #> BMX Olimpo IPRO
-    #> BMX Raptor i2x
-    #> BMX Raptor i2x
-    #> BMX Sparta i2x
-    #> BMX Sparta i2x
-    #> BMX Tormenta CE
-    #> BMX Tormenta CE
-    #> BRS 1061 IPRO
-    #> BRS 1061 IPRO
-    #> BRS 1075 IPRO
-    #> BRS 1075 IPRO
-    #> C 2740 CE
-    #> C 2740 CE
-    #> C 2790 CE
-    #> C 2790 CE
-    #> C 2810 CE
-    #> C 2810 CE
-    #> CZ 37B07 i2x
-    #> CZ 37B07 i2x
-    #> CZ 37B51 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 37B60 IPRO
-    #> CZ 37B60 IPRO
-    #> CZ 37B66 i2x
-    #> CZ 37B66 i2x
-    #> CZ 47B74 i2x
-    #> CZ 47B74 i2x
-    #> CZ 47B91 i2x
-    #> CZ 47B91 i2x
-    #> CZ 48B32 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 48B08 i2x
-    #> CZ 48B08 i2x
-    #> DM 72IX74 i2x
-    #> DM 72IX74 i2x
-    #> DM 74K75 CE
-    #> DM 74K75 CE
-    #> DM 75I74 IPRO
-    #> DM 75I74 IPRO
-    #> DM 76IX78 i2x
-    #> DM 76IX78 i2x
-    #> DM 78IX80 i2x
-    #> DM 78IX80 i2x
-    #> DM 79K80 CE
-    #> DM 79K80 CE
-    #> Dagma 6824 i2x
-    #> Dagma 6824 i2x
-    #> Dagma 7924 i2x
-    #> Dagma 7924 i2x
-    #> Dagma 8121 IPRO
-    #> Dagma 8121 IPRO
-    #> Ellas Dani i2x
-    #> Ellas Dani i2x
-    #> Ellas Manu IPRO
-    #> Ellas Manu IPRO
-    #> Ellas Paula IPRO
-    #> Ellas Paula IPRO
-    #> Evolui 7901 IPRO
-    #> Evolui 7901 IPRO
-    #> GH 2478 IPRO
-    #> GH 2478 IPRO
-    #> GH 2483 IPRO
-    #> GH 2483 IPRO
-    #> GH BC2284143 i2x
-    #> GH BC2284143 i2x
-    #> HO Arari i2x
-    #> HO Arari i2x
-    #> HO Garças i2x
-    #> HO Garças i2x
-    #> HO Guapó i2x
-    #> HO Guapó i2x
-    #> HO Mogi i2x
-    #> HO Mogi i2x
-    #> HO Mutum i2x
-    #> HO Mutum i2x
-    #> HO Nobres i2x
-    #> HO Nobres i2x
-    #> Latitude Amplia IPRO
-    #> Latitude Amplia IPRO
-    #> Latitude Eleva IPRO
-    #> Latitude Eleva IPRO
-    #> Latitude Maximiza IPRO
-    #> Latitude Maximiza IPRO
-    #> Latitude Otimiza IPRO
-    #> Latitude Otimiza IPRO
-    #> M 6620 i2x
-    #> M 6620 i2x
-    #> M 7601 i2x
-    #> M 7601 i2x
-    #> M 8220 i2x
-    #> M 8220 i2x
-    #> NEO 801 CE
-    #> NEO 801 CE
-    #> NS 7902 IPRO
-    #> NS 7902 IPRO
-    #> NSBC 2180022 IPRO
-    #> NSBC 2180022 IPRO
-    #> NSBC 228112 i2x
-    #> NSBC 228112 i2x
-    #> P 97Y70 CE
-    #> P 97Y70 CE
-    #> TMG 24408 i2x
-    #> TMG 24408 i2x
-    #> TMG 24409 i2x
-    #> TMG 24409 i2x
-    #> TMG 24410 i2x
-    #> TMG 24410 i2x
-    #> TMG 24411 i2x
-    #> TMG 24411 i2x
-    #> TMG 24424 i2x
-    #> TMG 24424 i2x
-    #> TMG 24427 i2x
-    #> TMG 24427 i2x
-    #> TMG 24429 i2x
-    #> TMG 24429 i2x
-    #> TMG Bálsamo i2x
-    #> TMG Bálsamo i2x
-    #> TMG Ingá i2x
-    #> TMG Ingá i2x
-    #> TMG Jatobá i2x
-    #> TMG Jatobá i2x
-    #> TMG Murici i2x
-    #> TMG Murici i2x
-    #> UFVS 77 C10
-    #> UFVS 80 C10
-    #> VA 7310 IPRO
-    #> VA 7310 IPRO
-    #> VA 8108 IPRO
-    #> VA 8108 IPRO
-    #> WS 052 IPRO
-    #> WS 052 IPRO
+    #> [Grupo  1 ]: 76KA72
+    #> 1 ]: 78KA42
+    #> 1 ]: 79KA72
+    #> 1 ]: 80KA72
+    #> 1 ]: AS 3640 i2x
+    #> 1 ]: AS 3700 XTD
+    #> 1 ]: AS 3707 i2x
+    #> 1 ]: AS 3715 i2x
+    #> 1 ]: AS 3790 i2x
+    #> 1 ]: AS 3800 i2x
+    #> 1 ]: AS 3840 i2x
+    #> 1 ]: AS 3840 i2x
+    #> 1 ]: B66C22
+    #> 1 ]: B72C22
+    #> 1 ]: B75C22
+    #> 1 ]: B80C23
+    #> 1 ]: BMX Cobre i2x
+    #> 1 ]: BMX Desafio RR
+    #> 1 ]: BMX Guepardo IPRO
+    #> 1 ]: BMX Mítica CE
+    #> 1 ]: BMX Olimpo IPRO
+    #> 1 ]: BMX Raptor i2x
+    #> 1 ]: BMX Sparta i2x
+    #> 1 ]: BMX Tormenta CE
+    #> 1 ]: BRS 1075 IPRO
+    #> 1 ]: C 2740 CE
+    #> 1 ]: C 2790 CE
+    #> 1 ]: C 2810 CE
+    #> 1 ]: CZ 37B07 i2x
+    #> 1 ]: CZ 37B51 IPRO
+    #> 1 ]: CZ 37B60 IPRO
+    #> 1 ]: CZ 37B66 i2x
+    #> 1 ]: CZ 47B74 i2x
+    #> 1 ]: CZ 47B91 i2x
+    #> 1 ]: CZ 48B32 IPRO
+    #> 1 ]: CZ 48B32 IPRO
+    #> 1 ]: CZ 48B08 i2x
+    #> 1 ]: CZ 48B08 i2x
+    #> 1 ]: DM 72IX74 i2x
+    #> 1 ]: DM 74K75 CE
+    #> 1 ]: DM 75I74 IPRO
+    #> 1 ]: DM 76IX78 i2x
+    #> 1 ]: DM 78IX80 i2x
+    #> 1 ]: DM 79K80 CE
+    #> 1 ]: Dagma 6824 i2x
+    #> 1 ]: Dagma 7924 i2x
+    #> 1 ]: Dagma 8121 IPRO
+    #> 1 ]: Ellas Dani i2x
+    #> 1 ]: Ellas Manu IPRO
+    #> 1 ]: Ellas Paula IPRO
+    #> 1 ]: Evolui 7901 IPRO
+    #> 1 ]: GH 2478 IPRO
+    #> 1 ]: GH 2483 IPRO
+    #> 1 ]: GH BC2284143 i2x
+    #> 1 ]: HO Arari i2x
+    #> 1 ]: HO Garças i2x
+    #> 1 ]: HO Guapó i2x
+    #> 1 ]: HO Mogi i2x
+    #> 1 ]: HO Mutum i2x
+    #> 1 ]: HO Nobres i2x
+    #> 1 ]: Latitude Amplia IPRO
+    #> 1 ]: Latitude Eleva IPRO
+    #> 1 ]: Latitude Maximiza IPRO
+    #> 1 ]: Latitude Otimiza IPRO
+    #> 1 ]: M 6620 i2x
+    #> 1 ]: M 7601 i2x
+    #> 1 ]: M 8220 i2x
+    #> 1 ]: NEO 801 CE
+    #> 1 ]: NS 7902 IPRO
+    #> 1 ]: NSBC 2180022 IPRO
+    #> 1 ]: NSBC 228112 i2x
+    #> 1 ]: P 97Y70 CE
+    #> 1 ]: TMG 24408 i2x
+    #> 1 ]: TMG 24409 i2x
+    #> 1 ]: TMG 24410 i2x
+    #> 1 ]: TMG 24411 i2x
+    #> 1 ]: TMG 24424 i2x
+    #> 1 ]: TMG 24427 i2x
+    #> 1 ]: TMG 24429 i2x
+    #> 1 ]: TMG 24429 i2x
+    #> 1 ]: TMG Bálsamo i2x
+    #> 1 ]: TMG Ingá i2x
+    #> 1 ]: TMG Jatobá i2x
+    #> 1 ]: TMG Murici i2x
+    #> 1 ]: UFVS 80 C10
+    #> 1 ]: VA 7310 IPRO
+    #> 1 ]: VA 8108 IPRO
+    #> 1 ]: WS 052 IPRO
     #> 
-    #> [Grupo 2]: 78KA42
-    #> 78KA42
-    #> 80KA72
-    #> 80KA72
-    #> AS 3640 i2x
-    #> AS 3640 i2x
-    #> AS 3700 XTD
-    #> AS 3700 XTD
-    #> AS 3707 i2x
-    #> AS 3707 i2x
-    #> AS 3715 i2x
-    #> AS 3715 i2x
-    #> AS 3790 i2x
-    #> AS 3790 i2x
-    #> AS 3800 i2x
-    #> AS 3800 i2x
-    #> AS 3840 i2x
-    #> AS 3840 i2x
-    #> B66C22
-    #> B66C22
-    #> B72C22
-    #> B75C22
-    #> B75C22
-    #> B80C23
-    #> B80C23
-    #> BMX Cobre i2x
-    #> BMX Desafio RR
-    #> BMX Desafio RR
-    #> BMX Mítica CE
-    #> BMX Olimpo IPRO
-    #> BMX Olimpo IPRO
-    #> BMX Raptor i2x
-    #> BMX Sparta i2x
-    #> BMX Tormenta CE
-    #> BMX Tormenta CE
-    #> BRS 1061 IPRO
-    #> BRS 1061 IPRO
-    #> BRS 1075 IPRO
-    #> BRS 1075 IPRO
-    #> C 2740 CE
-    #> C 2790 CE
-    #> CZ 37B07 i2x
-    #> CZ 37B07 i2x
-    #> CZ 37B51 IPRO
-    #> CZ 37B51 IPRO
-    #> CZ 37B60 IPRO
-    #> CZ 37B60 IPRO
-    #> CZ 37B66 i2x
-    #> CZ 37B66 i2x
-    #> CZ 47B74 i2x
-    #> CZ 47B74 i2x
-    #> CZ 47B91 i2x
-    #> CZ 47B91 i2x
-    #> CZ 48B32 IPRO
-    #> CZ 48B32 IPRO
-    #> CZ 48B08 i2x
-    #> CZ 48B08 i2x
-    #> DM 72IX74 i2x
-    #> DM 72IX74 i2x
-    #> DM 74K75 CE
-    #> DM 74K75 CE
-    #> DM 75I74 IPRO
-    #> DM 75I74 IPRO
-    #> DM 76IX78 i2x
-    #> DM 76IX78 i2x
-    #> DM 78IX80 i2x
-    #> DM 78IX80 i2x
-    #> DM 79K80 CE
-    #> Ellas Dani i2x
-    #> Ellas Manu IPRO
-    #> Ellas Paula IPRO
-    #> Evolui 7901 IPRO
-    #> Evolui 7901 IPRO
-    #> GH 2478 IPRO
-    #> GH 2478 IPRO
-    #> GH 2483 IPRO
-    #> GH 2483 IPRO
-    #> GH BC2284143 i2x
-    #> GH BC2284143 i2x
-    #> HO Arari i2x
-    #> HO Garças i2x
-    #> HO Guapó i2x
-    #> HO Mogi i2x
-    #> HO Mutum i2x
-    #> HO Nobres i2x
-    #> Latitude Amplia IPRO
-    #> Latitude Amplia IPRO
-    #> Latitude Eleva IPRO
-    #> Latitude Eleva IPRO
-    #> Latitude Maximiza IPRO
-    #> Latitude Maximiza IPRO
-    #> Latitude Otimiza IPRO
-    #> Latitude Otimiza IPRO
-    #> M 6620 i2x
-    #> M 6620 i2x
-    #> M 7601 i2x
-    #> M 7601 i2x
-    #> M 8220 i2x
-    #> M 8220 i2x
-    #> NEO 801 CE
-    #> NS 7902 IPRO
-    #> NS 7902 IPRO
-    #> NSBC 2180022 IPRO
-    #> NSBC 2180022 IPRO
-    #> NSBC 228112 i2x
-    #> NSBC 228112 i2x
-    #> P 97Y70 CE
-    #> TMG 24408 i2x
-    #> TMG 24408 i2x
-    #> TMG 24409 i2x
-    #> TMG 24409 i2x
-    #> TMG 24410 i2x
-    #> TMG 24410 i2x
-    #> TMG 24411 i2x
-    #> TMG 24411 i2x
-    #> TMG 24424 i2x
-    #> TMG 24424 i2x
-    #> TMG 24427 i2x
-    #> TMG 24427 i2x
-    #> TMG 24429 i2x
-    #> TMG 24429 i2x
-    #> TMG Bálsamo i2x
-    #> TMG Bálsamo i2x
-    #> TMG Ingá i2x
-    #> TMG Jatobá i2x
-    #> TMG Jatobá i2x
-    #> TMG Murici i2x
-    #> TMG Murici i2x
-    #> VA 7310 IPRO
-    #> VA 7310 IPRO
-    #> VA 8108 IPRO
-    #> VA 8108 IPRO
-    #> WS 052 IPRO
-    #> WS 052 IPRO
+    #> [Grupo  2 ]: 76KA72
+    #> 2 ]: 78KA42
+    #> 2 ]: 79KA72
+    #> 2 ]: 80KA72
+    #> 2 ]: AS 3640 i2x
+    #> 2 ]: AS 3700 XTD
+    #> 2 ]: AS 3707 i2x
+    #> 2 ]: AS 3715 i2x
+    #> 2 ]: AS 3790 i2x
+    #> 2 ]: AS 3800 i2x
+    #> 2 ]: B66C22
+    #> 2 ]: B72C22
+    #> 2 ]: B75C22
+    #> 2 ]: B76C23
+    #> 2 ]: B80C23
+    #> 2 ]: BMX Cobre i2x
+    #> 2 ]: BMX Cruzada CE
+    #> 2 ]: BMX Desafio RR
+    #> 2 ]: BMX Guepardo IPRO
+    #> 2 ]: BMX Mítica CE
+    #> 2 ]: BMX Olimpo IPRO
+    #> 2 ]: BMX Raptor i2x
+    #> 2 ]: BMX Sparta i2x
+    #> 2 ]: BMX Tormenta CE
+    #> 2 ]: BRS 1061 IPRO
+    #> 2 ]: BRS 1061 IPRO
+    #> 2 ]: BRS 1075 IPRO
+    #> 2 ]: C 2740 CE
+    #> 2 ]: C 2790 CE
+    #> 2 ]: C 2810 CE
+    #> 2 ]: CZ 37B07 i2x
+    #> 2 ]: CZ 37B51 IPRO
+    #> 2 ]: CZ 37B60 IPRO
+    #> 2 ]: CZ 37B66 i2x
+    #> 2 ]: CZ 47B74 i2x
+    #> 2 ]: CZ 47B91 i2x
+    #> 2 ]: DM 72IX74 i2x
+    #> 2 ]: DM 74K75 CE
+    #> 2 ]: DM 75I74 IPRO
+    #> 2 ]: DM 76IX78 i2x
+    #> 2 ]: DM 78IX80 i2x
+    #> 2 ]: DM 79K80 CE
+    #> 2 ]: Dagma 6824 i2x
+    #> 2 ]: Dagma 7924 i2x
+    #> 2 ]: Dagma 8121 IPRO
+    #> 2 ]: Ellas Dani i2x
+    #> 2 ]: Ellas Manu IPRO
+    #> 2 ]: Ellas Paula IPRO
+    #> 2 ]: Evolui 7901 IPRO
+    #> 2 ]: GH 2478 IPRO
+    #> 2 ]: GH 2483 IPRO
+    #> 2 ]: GH BC2284143 i2x
+    #> 2 ]: HO Arari i2x
+    #> 2 ]: HO Garças i2x
+    #> 2 ]: HO Guapó i2x
+    #> 2 ]: HO Mogi i2x
+    #> 2 ]: HO Mutum i2x
+    #> 2 ]: HO Nobres i2x
+    #> 2 ]: Latitude Amplia IPRO
+    #> 2 ]: Latitude Eleva IPRO
+    #> 2 ]: Latitude Maximiza IPRO
+    #> 2 ]: Latitude Otimiza IPRO
+    #> 2 ]: M 6620 i2x
+    #> 2 ]: M 7601 i2x
+    #> 2 ]: M 8220 i2x
+    #> 2 ]: NEO 801 CE
+    #> 2 ]: NS 7902 IPRO
+    #> 2 ]: NSBC 2180022 IPRO
+    #> 2 ]: NSBC 228112 i2x
+    #> 2 ]: P 97Y70 CE
+    #> 2 ]: TMG 24408 i2x
+    #> 2 ]: TMG 24409 i2x
+    #> 2 ]: TMG 24410 i2x
+    #> 2 ]: TMG 24411 i2x
+    #> 2 ]: TMG 24424 i2x
+    #> 2 ]: TMG 24427 i2x
+    #> 2 ]: TMG Bálsamo i2x
+    #> 2 ]: TMG Ingá i2x
+    #> 2 ]: TMG Jatobá i2x
+    #> 2 ]: TMG Murici i2x
+    #> 2 ]: UFVS 77 C10
+    #> 2 ]: VA 7310 IPRO
+    #> 2 ]: VA 8108 IPRO
+    #> 2 ]: WS 052 IPRO
+    #> 
+    #> [Grupo  3 ]: 78KA42
+    #> 3 ]: 80KA72
+    #> 3 ]: AS 3640 i2x
+    #> 3 ]: AS 3700 XTD
+    #> 3 ]: AS 3707 i2x
+    #> 3 ]: AS 3715 i2x
+    #> 3 ]: AS 3800 i2x
+    #> 3 ]: B66C22
+    #> 3 ]: B75C22
+    #> 3 ]: B80C23
+    #> 3 ]: BMX Desafio RR
+    #> 3 ]: BMX Olimpo IPRO
+    #> 3 ]: BMX Tormenta CE
+    #> 3 ]: BRS 1061 IPRO
+    #> 3 ]: BRS 1075 IPRO
+    #> 3 ]: CZ 37B07 i2x
+    #> 3 ]: CZ 37B51 IPRO
+    #> 3 ]: CZ 37B60 IPRO
+    #> 3 ]: CZ 37B66 i2x
+    #> 3 ]: CZ 47B74 i2x
+    #> 3 ]: CZ 47B91 i2x
+    #> 3 ]: DM 72IX74 i2x
+    #> 3 ]: DM 74K75 CE
+    #> 3 ]: DM 75I74 IPRO
+    #> 3 ]: DM 76IX78 i2x
+    #> 3 ]: DM 78IX80 i2x
+    #> 3 ]: GH BC2284143 i2x
+    #> 3 ]: Latitude Eleva IPRO
+    #> 3 ]: Latitude Otimiza IPRO
+    #> 3 ]: M 6620 i2x
+    #> 3 ]: NSBC 2180022 IPRO
+    #> 3 ]: NSBC 228112 i2x
+    #> 3 ]: TMG 24408 i2x
+    #> 3 ]: TMG 24409 i2x
+    #> 3 ]: TMG 24410 i2x
+    #> 3 ]: TMG 24424 i2x
+    #> 3 ]: TMG 24427 i2x
+    #> 3 ]: VA 7310 IPRO
+    #> 
+    #> [Grupo  4 ]: 78KA42
+    #> 4 ]: 80KA72
+    #> 4 ]: AS 3640 i2x
+    #> 4 ]: AS 3700 XTD
+    #> 4 ]: AS 3707 i2x
+    #> 4 ]: AS 3715 i2x
+    #> 4 ]: AS 3790 i2x
+    #> 4 ]: AS 3790 i2x
+    #> 4 ]: AS 3800 i2x
+    #> 4 ]: AS 3840 i2x
+    #> 4 ]: AS 3840 i2x
+    #> 4 ]: B66C22
+    #> 4 ]: B72C22
+    #> 4 ]: B75C22
+    #> 4 ]: B80C23
+    #> 4 ]: BMX Cobre i2x
+    #> 4 ]: BMX Desafio RR
+    #> 4 ]: BMX Mítica CE
+    #> 4 ]: BMX Olimpo IPRO
+    #> 4 ]: BMX Raptor i2x
+    #> 4 ]: BMX Sparta i2x
+    #> 4 ]: BMX Tormenta CE
+    #> 4 ]: BRS 1061 IPRO
+    #> 4 ]: BRS 1075 IPRO
+    #> 4 ]: C 2740 CE
+    #> 4 ]: C 2790 CE
+    #> 4 ]: CZ 37B07 i2x
+    #> 4 ]: CZ 37B51 IPRO
+    #> 4 ]: CZ 37B60 IPRO
+    #> 4 ]: CZ 37B66 i2x
+    #> 4 ]: CZ 47B74 i2x
+    #> 4 ]: CZ 47B91 i2x
+    #> 4 ]: CZ 48B32 IPRO
+    #> 4 ]: CZ 48B32 IPRO
+    #> 4 ]: CZ 48B08 i2x
+    #> 4 ]: CZ 48B08 i2x
+    #> 4 ]: DM 72IX74 i2x
+    #> 4 ]: DM 74K75 CE
+    #> 4 ]: DM 75I74 IPRO
+    #> 4 ]: DM 76IX78 i2x
+    #> 4 ]: DM 78IX80 i2x
+    #> 4 ]: DM 79K80 CE
+    #> 4 ]: Ellas Dani i2x
+    #> 4 ]: Ellas Manu IPRO
+    #> 4 ]: Ellas Paula IPRO
+    #> 4 ]: Evolui 7901 IPRO
+    #> 4 ]: Evolui 7901 IPRO
+    #> 4 ]: GH 2478 IPRO
+    #> 4 ]: GH 2478 IPRO
+    #> 4 ]: GH 2483 IPRO
+    #> 4 ]: GH 2483 IPRO
+    #> 4 ]: GH BC2284143 i2x
+    #> 4 ]: HO Arari i2x
+    #> 4 ]: HO Garças i2x
+    #> 4 ]: HO Guapó i2x
+    #> 4 ]: HO Mogi i2x
+    #> 4 ]: HO Mutum i2x
+    #> 4 ]: HO Nobres i2x
+    #> 4 ]: Latitude Amplia IPRO
+    #> 4 ]: Latitude Amplia IPRO
+    #> 4 ]: Latitude Eleva IPRO
+    #> 4 ]: Latitude Maximiza IPRO
+    #> 4 ]: Latitude Maximiza IPRO
+    #> 4 ]: Latitude Otimiza IPRO
+    #> 4 ]: M 6620 i2x
+    #> 4 ]: M 7601 i2x
+    #> 4 ]: M 7601 i2x
+    #> 4 ]: M 8220 i2x
+    #> 4 ]: M 8220 i2x
+    #> 4 ]: NEO 801 CE
+    #> 4 ]: NS 7902 IPRO
+    #> 4 ]: NS 7902 IPRO
+    #> 4 ]: NSBC 2180022 IPRO
+    #> 4 ]: NSBC 228112 i2x
+    #> 4 ]: P 97Y70 CE
+    #> 4 ]: TMG 24408 i2x
+    #> 4 ]: TMG 24409 i2x
+    #> 4 ]: TMG 24410 i2x
+    #> 4 ]: TMG 24411 i2x
+    #> 4 ]: TMG 24411 i2x
+    #> 4 ]: TMG 24424 i2x
+    #> 4 ]: TMG 24427 i2x
+    #> 4 ]: TMG 24429 i2x
+    #> 4 ]: TMG 24429 i2x
+    #> 4 ]: TMG Bálsamo i2x
+    #> 4 ]: TMG Bálsamo i2x
+    #> 4 ]: TMG Ingá i2x
+    #> 4 ]: TMG Jatobá i2x
+    #> 4 ]: TMG Jatobá i2x
+    #> 4 ]: TMG Murici i2x
+    #> 4 ]: TMG Murici i2x
+    #> 4 ]: VA 7310 IPRO
+    #> 4 ]: VA 8108 IPRO
+    #> 4 ]: VA 8108 IPRO
+    #> 4 ]: WS 052 IPRO
+    #> 4 ]: WS 052 IPRO
 
 ![](README_files/figure-gfm/unnamed-chunk-20-20.png)<!-- -->
 
@@ -1780,3 +1791,419 @@ for(i in seq_along(safras)){
     #> temp_media_15d_sem      0.164960055
     #> chuva_15d_sem          -0.066689306
     #> chuva_30d_sem          -0.144541554
+
+## Análise multivariada total
+
+``` r
+df_aux <- dados |> 
+  group_by(cultivar) |> 
+  summarise(across(.cols = ap:temp_media_ciclo,
+                   .fns = mean,
+                   .names = "{.col}" 
+                   
+  )) |> 
+  ungroup()
+```
+
+``` r
+dados_aux <- df_aux |>  select(-cultivar,-duracao_floresc,
+                               -duracao_ciclo)
+cultivar <- df_aux$cultivar
+
+mc <- cor(dados_aux)
+fc <- !is.na(mc[1,])
+fl <- !is.na(mc[,1])
+mc <- mc[fc,fl]
+```
+
+``` r
+corrplot(mc[1:6,-(1:6)],method = "color",
+         outline = TRUE,
+         addgrid.col = "darkgray",cl.pos = "r", tl.col = "black",
+         tl.cex = 1, cl.cex = 1,  bg="azure2",
+         # diag = FALSE,
+         addCoef.col = "black",
+         cl.ratio = 0.2,
+         cl.length = 5,
+         number.cex = 0.8
+)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+``` r
+nomes <- colnames(mc)
+da_pad<-decostand(dados_aux |> 
+                    select(nomes), 
+                  method = "standardize",
+                  na.rm=TRUE)
+da_pad_euc<-vegdist(da_pad,"euclidean") 
+da_pad_euc_ward<-hclust(da_pad_euc, method="ward.D")
+da_pad_euc_ward$labels <- cultivar
+grupo<-cutree(da_pad_euc_ward,5)
+d <- da_pad_euc_ward$height
+d_corte <- d[which(d |> diff() == max(diff(d)))]
+plot(da_pad_euc_ward, 
+     ylab="Distância Euclidiana",
+     xlab="Acessos", hang=-1,
+     col="blue", las=1,
+     cex=.6,lwd=1.5);box();abline(h=d_corte*1.15)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+
+``` r
+pca <-  prcomp(da_pad,scale.=TRUE)
+# Autovalores
+eig<-pca$sdev^2
+print("==== Autovalores ====")
+#> [1] "==== Autovalores ===="
+print(round(eig,3))
+#>  [1] 10.289  2.880  2.155  1.690  1.210  0.801  0.703  0.376  0.282  0.233
+#> [11]  0.139  0.093  0.041  0.033  0.027  0.021  0.012  0.008  0.005  0.002
+#> [21]  0.000
+print("==== % da variância explicada ====")
+#> [1] "==== % da variância explicada ===="
+ve<-eig/sum(eig)
+print(round(ve,4))
+#>  [1] 0.4899 0.1371 0.1026 0.0805 0.0576 0.0381 0.0335 0.0179 0.0134 0.0111
+#> [11] 0.0066 0.0044 0.0020 0.0016 0.0013 0.0010 0.0006 0.0004 0.0002 0.0001
+#> [21] 0.0000
+print("==== % da variância explicada acumulada ====")
+#> [1] "==== % da variância explicada acumulada ===="
+print(round(cumsum(ve),4)*100)
+#>  [1]  48.99  62.71  72.97  81.02  86.78  90.59  93.94  95.73  97.07  98.18
+#> [11]  98.84  99.29  99.48  99.64  99.77  99.87  99.93  99.96  99.99 100.00
+#> [21] 100.00
+print("==== Poder Discriminante ====")
+#> [1] "==== Poder Discriminante ===="
+```
+
+``` r
+mcor<-cor(da_pad,pca$x)
+corrplot(mcor)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+
+``` r
+pc1V<-cor(da_pad,pca$x)[,1]/sd(cor(da_pad,pca$x)[,1])
+pc2V<-cor(da_pad,pca$x)[,2]/sd(cor(da_pad,pca$x)[,2])
+pc3V<-cor(da_pad,pca$x)[,3]/sd(cor(da_pad,pca$x)[,3])
+pc1c<-pca$x[,1]/sd(pca$x[,1])
+pc2c<-pca$x[,2]/sd(pca$x[,2])
+pc3c<-pca$x[,3]/sd(pca$x[,3])
+nv<-ncol(mc) # número de variáveis utilizadas na análise
+
+# gráfico biplot
+bip<-data.frame(pc1c,pc2c,pc3c,grupo)
+texto <- data.frame(
+  x = pc1V,
+  y = pc2V,
+  z = pc3V,
+  label = rownames(mc)
+)
+for(k in 1:max(grupo)){
+  cat("[Grupo ", paste0(k,"]: ",cultivar[grupo==k],collapse = "\n"))
+  cat("\n\n")
+}
+#> [Grupo  1]: 76EA72
+#> 1]: BMX Origem IPRO
+#> 1]: BRS 774 RR
+#> 1]: BRSMG 534
+#> 1]: Bela Cultivar 03 i2x
+#> 1]: Bela Cultivar 61 i2x
+#> 1]: Bela Cultivar 64 i2x
+#> 1]: Bela Cultivar 65 i2x
+#> 1]: Bela Cultivar 66 CE
+#> 1]: Bela Cultivar 67 i2x
+#> 1]: CZ 47B90 IPRO
+#> 1]: CZ 48B01 i2x
+#> 1]: CZ 48B08 i2x
+#> 1]: CZ 58B48 i2x
+#> 1]: DM 79I81 IPRO
+#> 1]: Ellas Lynda IPRO
+#> 1]: HO Cristalino IPRO
+#> 1]: HO Juruena IPRO
+#> 1]: HO Maracaí IPRO
+#> 1]: M 8210 IPRO
+#> 1]: NEO 750 IPRO
+#> 1]: NK 8301 IPRO
+#> 1]: NK 8448 IPRO
+#> 1]: NS 1657 810
+#> 1]: NS 7700 IPRO
+#> 1]: NS 8300 IPRO
+#> 1]: NS 8400 IPRO
+#> 1]: PP Atenas IPRO
+#> 1]: PP Bagual IPRO
+#> 1]: PP Brutus IPRO
+#> 1]: PP Campeira IPRO
+#> 1]: PP Colibri IPRO
+#> 1]: PP Destaque IPRO
+#> 1]: PP Lenda IPRO
+#> 1]: ST 711 i2x
+#> 1]: ST 822 i2x
+#> 1]: ST 834 IPRO
+#> 1]: TMG 22-206 E
+#> 1]: TMG 22-210 i2x
+#> 1]: TMG 22-213 i2x
+#> 1]: TMG 22X77 i2x
+#> 1]: TMG 22X83 i2x
+#> 1]: VA 7209 IPRO
+#> 1]: WS 053 IPRO
+#> 1]: WS 054 IPRO
+#> 
+#> [Grupo  2]: 76KA72
+#> 2]: 79KA72
+#> 2]: AS 3790 IPRO
+#> 2]: B 5710 CE
+#> 2]: B 5830 CE
+#> 2]: B76C23
+#> 2]: BMX Ataque i2x
+#> 2]: BMX Bônus IPRO
+#> 2]: BMX Cruzada CE
+#> 2]: Bela 35 IPRO
+#> 2]: Bela 39 IPRO
+#> 2]: Bela 45 IPRO
+#> 2]: Bela 46 IPRO
+#> 2]: Bela 47 i2x
+#> 2]: Bela 64 CE
+#> 2]: C 2732 IPRO
+#> 2]: C 2810 CE
+#> 2]: CZ 48B01 IPRO
+#> 2]: Dagma 6822 IPRO
+#> 2]: Dagma 7621 i2x
+#> 2]: Dagma 7921 IPRO
+#> 2]: Dagma 7924 i2x
+#> 2]: Dagma 8121 IPRO
+#> 2]: Dagma 8221 i2x
+#> 2]: Dagma 8321 CE
+#> 2]: EXP WS 29 IPRO
+#> 2]: Ellas Elisa IPRO
+#> 2]: Ellas Manu IPRO
+#> 2]: Ellas Paula IPRO
+#> 2]: FT 3282 IPRO
+#> 2]: FT 3771 IPRO
+#> 2]: GH 2384 IPRO
+#> 2]: HO Itiquira IPRO
+#> 2]: NK 8100 IPRO
+#> 2]: PP Aguerrida IPRO
+#> 2]: PP Avanço IPRO
+#> 2]: UFVS 80 C10
+#> 2]: VA 79A IPRO
+#> 2]: VA 84A IPRO
+#> 
+#> [Grupo  3]: 78KA42
+#> 3]: AS 3640 i2x
+#> 3]: AS 3700 XTD
+#> 3]: AS 3707 i2x
+#> 3]: AS 3790 i2x
+#> 3]: AS 3800 i2x
+#> 3]: AS 3840 i2x
+#> 3]: B66C22
+#> 3]: B72C22
+#> 3]: B75C22
+#> 3]: BMX Desafio RR
+#> 3]: BMX Olimpo IPRO
+#> 3]: BMX Sparta i2x
+#> 3]: BMX Tormenta CE
+#> 3]: BRS 1061 IPRO
+#> 3]: BRS 1075 IPRO
+#> 3]: CZ 37B07 i2x
+#> 3]: CZ 37B39 i2x
+#> 3]: CZ 37B43 IPRO
+#> 3]: CZ 37B51 IPRO
+#> 3]: CZ 37B66 i2x
+#> 3]: CZ 47B74 i2x
+#> 3]: CZ 48B18 IPRO
+#> 3]: CZ 48B32 IPRO
+#> 3]: CZ 58B23 i2x
+#> 3]: Ellas Dani i2x
+#> 3]: GH 2282 IPRO
+#> 3]: GH 2376 IPRO
+#> 3]: GH 2478 IPRO
+#> 3]: GH 2483 IPRO
+#> 3]: HO Coari i2x
+#> 3]: HO Mogi i2x
+#> 3]: HO Mutum i2x
+#> 3]: M 7601 i2x
+#> 3]: M 8220 i2x
+#> 3]: NK 7010 IPRO
+#> 3]: PP Grandeza IPRO
+#> 3]: PP Peleia IPRO
+#> 3]: ST 752 i2x
+#> 3]: UFVS 77 C10
+#> 3]: VA 7310 IPRO
+#> 
+#> [Grupo  4]: 80KA72
+#> 4]: AS 3715 i2x
+#> 4]: B80C23
+#> 4]: BMX Cobre i2x
+#> 4]: BMX Guepardo IPRO
+#> 4]: BMX Mítica CE
+#> 4]: BMX Raptor i2x
+#> 4]: C 2740 CE
+#> 4]: C 2790 CE
+#> 4]: CZ 37B60 IPRO
+#> 4]: CZ 47B91 i2x
+#> 4]: CZ 48B08 i2x
+#> 4]: DM 72IX74 i2x
+#> 4]: DM 74K75 CE
+#> 4]: DM 75I74 IPRO
+#> 4]: DM 76IX78 i2x
+#> 4]: DM 78IX80 i2x
+#> 4]: DM 79K80 CE
+#> 4]: Dagma 6824 i2x
+#> 4]: Evolui 7901 IPRO
+#> 4]: GH BC2284143 i2x
+#> 4]: HO Arari i2x
+#> 4]: HO Garças i2x
+#> 4]: HO Guapó i2x
+#> 4]: HO Nobres i2x
+#> 4]: Latitude Amplia IPRO
+#> 4]: Latitude Eleva IPRO
+#> 4]: Latitude Maximiza IPRO
+#> 4]: Latitude Otimiza IPRO
+#> 4]: M 6620 i2x
+#> 4]: NEO 801 CE
+#> 4]: NS 7902 IPRO
+#> 4]: NSBC 2180022 IPRO
+#> 4]: NSBC 228112 i2x
+#> 4]: P 97Y70 CE
+#> 4]: TMG 24408 i2x
+#> 4]: TMG 24409 i2x
+#> 4]: TMG 24410 i2x
+#> 4]: TMG 24411 i2x
+#> 4]: TMG 24424 i2x
+#> 4]: TMG 24427 i2x
+#> 4]: TMG 24429 i2x
+#> 4]: TMG Bálsamo i2x
+#> 4]: TMG Ingá i2x
+#> 4]: TMG Jatobá i2x
+#> 4]: TMG Murici i2x
+#> 4]: VA 8108 IPRO
+#> 4]: WS 052 IPRO
+#> 
+#> [Grupo  5]: AGN 8019 IPRO
+#> 5]: AS 3680 IPRO
+#> 5]: BMX Ultra IPRO
+#> 5]: C 2800 IPRO
+#> 5]: C 2811 IPRO
+#> 5]: C 2834 IPRO
+#> 5]: CZ 36B96 i2x
+#> 5]: CZ 58B23 IPRO
+#> 5]: CZ 58B28 IPRO
+#> 5]: HO Caiapó IPRO
+#> 5]: HO Coxim IPRO
+#> 5]: HO Mamoré IPRO
+#> 5]: M 8372 IPRO
+#> 5]: NK 7777 IPRO
+#> 5]: PP 195 JZ
+#> 5]: PP 195 JZ RR
+#> 5]: PP 35 JM
+#> 5]: PP 35 JM IPRO
+#> 5]: PP 39 JM
+#> 5]: PP 39 JM IPRO
+#> 5]: Rio Verde 13
+#> 5]: Rio Verde 26
+#> 5]: Rio Verde 27
+#> 5]: Rio Verde 28
+#> 5]: Rio Verde 29
+#> 5]: Rio Verde 30
+#> 5]: Rio Verde 32
+#> 5]: Rio Verde 45
+#> 5]: Rio Verde 46
+#> 5]: ST 700 i2x
+#> 5]: ST 783 IPRO
+#> 5]: ST 794 i2x
+#> 5]: ST 804 IPRO
+#> 5]: ST 830 IPRO
+#> 5]: Soy Ampla IPRO
+#> 5]: Soy Combate IPRO
+#> 5]: Soy Impacto IPRO
+#> 5]: Soy Safira RR
+#> 5]: TMG 2379 IPRO
+
+
+bi_plot <- bip |> 
+  ggplot(aes(x=pc1c,y=pc2c,colour = as_factor(grupo))) +
+  geom_point(size = 3) +
+  theme_minimal() +
+  # scale_shape_manual(values=16:18)+
+  # scale_color_manual(values=c("#009E73", "#D55E00")) + #"#999999",
+  # annotate(geom="text", x=pc1c, y=pc2c, label=cultivar,
+  #             color="black",size=.25)+
+  geom_vline(aes(xintercept=0),
+             color="black", size=1)+
+  geom_hline(aes(yintercept=0),
+             color="black", size=1)+
+  annotate(geom="segment",
+           x=rep(0,nv),
+           xend=texto$x,
+           y=rep(0,nv),
+           yend=texto$y,color="black",lwd=.5)+
+  geom_label(data=texto,aes(x=x,y=y,label=label),
+             color="black",angle=0,fontface="bold",size=3,fill="white")+
+  labs(x=paste("CP1 (",round(100*ve[1],2),"%)",sep=""),
+       y=paste("CP2 (",round(100*ve[2],2),"%)",sep=""),
+       color="",shape="")+
+  theme(legend.position = "top")+
+  xlim(min(pc1c)*1.5,max(pc1c)*1.5) 
+print(bi_plot)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
+
+``` r
+ck<-sum(pca$sdev^2>=0.98)
+tabelapca<-vector()
+for( l in 1:ck) tabelapca<-cbind(tabelapca,mcor[,l])
+colnames(tabelapca)<-paste(rep(c("PC"),ck),1:ck,sep="")
+pcat<-round(tabelapca,3)
+tabelapca<-tabelapca[order(abs(tabelapca[,1])),]
+print(tabelapca)
+#>                                PC1         PC2         PC3          PC4
+#> ap                      0.02330512  0.17583633 -0.41501418 -0.649242962
+#> pop                     0.09658358 -0.65328677 -0.13898032  0.235869273
+#> mmg                    -0.29803139  0.19586723 -0.16203728 -0.397404840
+#> chuva_30d_sem           0.36909071  0.46225458 -0.51423258  0.439676868
+#> aiv                     0.37388428  0.21855758 -0.27480518 -0.742915737
+#> chuva_15d_sem          -0.40360152  0.56663353 -0.39995673  0.451394276
+#> sc                     -0.50828740  0.45579185  0.64635899 -0.101367506
+#> kg                     -0.50832614  0.45571636  0.64632977 -0.101351207
+#> chuva_15d_floresc      -0.61442665 -0.67233023 -0.09232494  0.014569131
+#> chuva_total_ciclo      -0.68303404 -0.40370058 -0.44270090 -0.157031834
+#> dias_secos_30d          0.69206256 -0.48197993 -0.17137650 -0.100773931
+#> temp_media_15d_sem      0.72168716 -0.42227208  0.35736984 -0.054848084
+#> temp_media_30d_sem      0.74978406 -0.32364916  0.41396634 -0.020124336
+#> chuva_total_floresc    -0.86381050 -0.31194563  0.04366063 -0.026196410
+#> max_dias_secos_30d      0.86428041  0.28836280 -0.21541501  0.100967298
+#> chuva_30d_floresc      -0.87444781 -0.24236270  0.03369638  0.119770849
+#> dias_chuva_30d         -0.90056000 -0.01990734  0.03279313 -0.081956964
+#> temp_media_ciclo        0.96101043  0.01103627  0.02439624  0.104755103
+#> temp_media_15d_floresc  0.96717895  0.09461903  0.04659535 -0.046630099
+#> temp_media_floresc      0.97205367 -0.07970913  0.09452298 -0.042517783
+#> temp_media_30d_floresc  0.97768250 -0.02453396  0.07845795  0.001466565
+#>                                 PC5
+#> ap                     -0.423413097
+#> pop                     0.092511526
+#> mmg                     0.309361314
+#> chuva_30d_sem          -0.366504664
+#> aiv                    -0.134943892
+#> chuva_15d_sem          -0.272732143
+#> sc                     -0.227074850
+#> kg                     -0.227182105
+#> chuva_15d_floresc      -0.259982766
+#> chuva_total_ciclo      -0.141038492
+#> dias_secos_30d         -0.024248117
+#> temp_media_15d_sem     -0.285517220
+#> temp_media_30d_sem     -0.328925149
+#> chuva_total_floresc    -0.306938179
+#> max_dias_secos_30d     -0.071511752
+#> chuva_30d_floresc      -0.344066022
+#> dias_chuva_30d          0.261694911
+#> temp_media_ciclo       -0.149002137
+#> temp_media_15d_floresc  0.084761017
+#> temp_media_floresc     -0.058671518
+#> temp_media_30d_floresc  0.001007439
+```
