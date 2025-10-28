@@ -72,7 +72,7 @@ dados_climatico |>
     legend.position = "top"
   ) 
 ```
-
+<!--
 ## Estatísticas descritivas gerais
 
 ```{r}
@@ -213,4 +213,4 @@ ggplot(dados_climatico, aes(x = data, y = temp_media)) +
        x = "Data", y = "Temperatura media (oC)") +
   theme_minimal()
 ```
-
+--> 

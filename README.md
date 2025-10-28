@@ -72,9 +72,9 @@ dados_climatico |>
   ) 
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
-
+![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- --> <!--
 ## Estatísticas descritivas gerais
+
 
 ``` r
 resumo_geral <- dados_climatico  |> 
@@ -97,8 +97,8 @@ resumo_geral
 #> # ℹ 4 more variables: temp_med_sd <dbl>, temp_max_sd <dbl>, prec_sd <dbl>,
 #> #   n_dias <int>
 ```
+##  Estatísticas mensais
 
-## Estatísticas mensais
 
 ``` r
 resumo_mensal <- dados_climatico  |> 
@@ -130,6 +130,7 @@ resumo_mensal
 ## Gráficos de tendência temporal
 
 ### Temperatura média diária
+
 
 ``` r
 dados_climatico |> 
@@ -258,4 +259,4 @@ ggplot(dados_climatico, aes(x = data, y = temp_media)) +
   theme_minimal()
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- --> –\>
