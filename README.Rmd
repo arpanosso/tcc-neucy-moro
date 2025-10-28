@@ -1,5 +1,5 @@
 ---
-output: github_document
+output: word_document
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# TCC Neucy
+# TCC Neucy - Dados Climáticos
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -27,6 +27,7 @@ library(tidyverse)
 library(trend)
 library(ggpubr)
 library(corrplot)
+library(vegan)
 ```
 
 ## Carregando dados
@@ -214,4 +215,237 @@ ggplot(dados_climatico, aes(x = data, y = temp_media)) +
        x = "Data", y = "Temperatura media (oC)") +
   theme_minimal()
 ```
+
+# TCC Neucy - Dados Fenotípicos
+
+## Carregando dados
+
+```{r}
+dados_fenotipicos <- read_rds("data/dados-tcc-neucy.rds")
+skimr::skim(dados_fenotipicos)
+```
+
+## Função para criar chuva acumulada e média de temperatura
+
+```{r}
+get_climate_features <- function(data_ref, 
+                                 janela = 15,
+                                 df_ref,
+                                 feature = "chuva_acumulada"){
+  data_ref = lubridate::as_date(data_ref) 
+  data_l = lubridate::as_date(data_ref) - days(janela)
+  df_aux = df_ref |> 
+    filter(data >= data_l & data <= data_ref)
+  
+  sum_prec = sum(df_aux$precipitacao)
+  dias_chuva = sum(df_aux$precipitacao>=1)
+  dias_secos = sum(df_aux$precipitacao == 0)
+  seco = df_aux$precipitacao < 1
+  rle_seco = rle(seco)
+  max_dry = ifelse(any(rle_seco$values), max(rle_seco$lengths[rle_seco$values]), 0)
+  temp_media = mean(df_aux$temp_media) 
+  if(feature == "chuva_acumulada" ) return(sum_prec)
+  if(feature == "dias_chuva" ) return(dias_chuva)
+  if(feature == "dias_secos" ) return(dias_secos)
+  if(feature == "max_dias_secos" ) return(max_dry)
+  if(feature == "temp_media" ) return(temp_media)
+}
+get_climate_features(lubridate::as_date("2020-11-18"),15,dados_climatico,"chuva_acumulada")
+get_climate_features(lubridate::as_date("2020-11-18"),30,dados_climatico,"chuva_acumulada")
+```
+
+
+```{r}
+# dados <- dados_fenotipicos |> 
+#   # slice(1:10) |> 
+#   rowwise() |>
+#   mutate(
+#      duracao_floresc = as.numeric(data_floresc - data_sem),
+#      duracao_ciclo = as.numeric(data_ciclo - data_sem),
+#      chuva_total_floresc = get_climate_features(data_floresc,duracao_floresc,
+#                                               dados_climatico,"chuva_acumulada"),
+#      chuva_total_ciclo = get_climate_features(data_ciclo,duracao_ciclo,
+#                                               dados_climatico,"chuva_acumulada"),
+#      chuva_15d_sem = get_climate_features(data_sem,15,dados_climatico,"chuva_acumulada"),
+#      chuva_30d_sem = get_climate_features(data_sem,45,dados_climatico,"chuva_acumulada"),
+#      chuva_15d_floresc = get_climate_features(data_floresc,janela = 15,df_ref = dados_climatico,"chuva_acumulada"),
+#      chuva_30d_floresc = get_climate_features(data_floresc,45,dados_climatico,"chuva_acumulada"),
+#      dias_chuva_30d = get_climate_features(data_ciclo,30,
+#                                               dados_climatico,"dias_chuva"),
+#      dias_secos_30d = get_climate_features(data_ciclo,30,
+#                                               dados_climatico,"dias_secos"),
+#      max_dias_secos_30d = get_climate_features(data_ciclo,30,
+#                                               dados_climatico,"max_dias_secos"),
+#      temp_media_15d_sem = get_climate_features(data_sem,15,
+#                                                dados_climatico,"temp_media"),
+#      temp_media_30d_sem = get_climate_features(data_sem,30,
+#                                                dados_climatico,"temp_media"),
+#      temp_media_15d_floresc = get_climate_features(data_floresc,15,
+#                                                dados_climatico,"temp_media"),
+#      temp_media_30d_floresc = get_climate_features(data_floresc,30,
+#                                                dados_climatico,"temp_media"),
+#      temp_media_floresc = get_climate_features(data_floresc,duracao_floresc,
+#                                                dados_climatico,"temp_media"),
+#      temp_media_ciclo = get_climate_features(data_floresc,duracao_ciclo,
+#                                                dados_climatico,"temp_media"),
+#   ) 
+# write_rds(dados,"data/dados-agregados.rds")
+```
+
+
+# DADOS AGREGADOS
+
+```{r}
+dados <- read_rds("data/dados-agregados.rds")
+glimpse(dados)  
+```
+
+## Análise de grupamento
+
+```{r}
+safras <- unique(dados$safra)
+epocas <- unique(dados$epoca)
+for(i in seq_along(safras)){
+  # for(j in seq_along(epocas)){
+    df_aux <- dados |> 
+      filter(
+        safra == safras[i],
+        # epoca == epocas[j]
+      ) |> 
+      group_by(cultivar,epoca) |> 
+      summarise(across(.cols = ap:temp_media_ciclo,
+                       .fns = mean,
+                       .names = "{.col}" 
+                       
+      )) |> ungroup()
+    dados_aux <- df_aux |>  select(-cultivar,-epoca,-duracao_floresc,
+                                   -duracao_ciclo)
+    cultivar <- df_aux$cultivar
+    if(nrow(dados_aux) > 10){
+      mc <- cor(dados_aux)
+      fc <- !is.na(mc[1,])
+      fl <- !is.na(mc[,1])
+      mc <- mc[fc,fl]
+      print("=================================================================")
+      print(paste0("ANALISE PARA SAFRA: ",safras[i]))#,"; EPOCA: ",epocas[j]))
+      print("=================================================================")
+      
+      corrplot(mc[1:6,-(1:6)],method = "color",
+                         outline = TRUE,
+                         addgrid.col = "darkgray",cl.pos = "r", tl.col = "black",
+                         tl.cex = 1, cl.cex = 1,  bg="azure2",
+                         # diag = FALSE,
+                         addCoef.col = "black",
+                         cl.ratio = 0.2,
+                         cl.length = 5,
+                         number.cex = 0.8
+                         ) 
+      nomes <- colnames(mc)
+      da_pad<-decostand(dados_aux |> 
+                          select(nomes), 
+                          method = "standardize",
+                        na.rm=TRUE)
+      da_pad_euc<-vegdist(da_pad,"euclidean") 
+      da_pad_euc_ward<-hclust(da_pad_euc, method="ward.D")
+      da_pad_euc_ward$labels <- cultivar
+      grupo<-cutree(da_pad_euc_ward,2)
+      d <- da_pad_euc_ward$height
+      d_corte <- d[which(d |> diff() == max(diff(d)))]
+      plot(da_pad_euc_ward, 
+           ylab="Distância Euclidiana",
+           xlab="Acessos", hang=-1,
+           col="blue", las=1,
+           cex=.6,lwd=1.5);box();abline(h=d_corte*1.15)
+      
+      print("======== Análise de Componentes Principais ========== ")
+      pca <-  prcomp(da_pad,scale.=TRUE)
+      # Autovalores
+      eig<-pca$sdev^2
+      print("==== Autovalores ====")
+      print(round(eig,3))
+      print("==== % da variância explicada ====")
+      ve<-eig/sum(eig)
+      print(round(ve,4))
+      print("==== % da variância explicada acumulada ====")
+      print(round(cumsum(ve),4)*100)
+      print("==== Poder Discriminante ====")
+      mcor<-cor(da_pad,pca$x)
+      corrplot(mcor)
+      print("==== screeplot ====")
+      # screeplot(pca);abline(h=1)
+      
+      pc1V<-cor(da_pad,pca$x)[,1]/sd(cor(da_pad,pca$x)[,1])
+      pc2V<-cor(da_pad,pca$x)[,2]/sd(cor(da_pad,pca$x)[,2])
+      pc3V<-cor(da_pad,pca$x)[,3]/sd(cor(da_pad,pca$x)[,3])
+      pc1c<-pca$x[,1]/sd(pca$x[,1])
+      pc2c<-pca$x[,2]/sd(pca$x[,2])
+      pc3c<-pca$x[,3]/sd(pca$x[,3])
+      nv<-ncol(mc) # número de variáveis utilizadas na análise
+      
+      # gráfico biplot
+      bip<-data.frame(pc1c,pc2c,pc3c,grupo)
+      texto <- data.frame(
+        x = pc1V,
+        y = pc2V,
+        z = pc3V,
+        label = rownames(mc)
+      )
+      cat("[Grupo 1]:", paste(cultivar[grupo==1],collapse = "\n"))
+      cat("\n\n")
+      cat("[Grupo 2]:", paste(cultivar[grupo==2],collapse = "\n"))
+      cat("\n\n")
+      # cat("[Grupo 3]:", paste(cultivar[grupo==3],collapse = "\n"))
+      # cat("\n\n")
+
+      bi_plot <- bip |> 
+        ggplot(aes(x=pc1c,y=pc2c,colour = as_factor(grupo))) +
+        geom_point(size = 3) +
+        theme_minimal() +
+        # scale_shape_manual(values=16:18)+
+        scale_color_manual(values=c("#009E73", "#D55E00")) + #"#999999",
+        # annotate(geom="text", x=pc1c, y=pc2c, label=cultivar,
+        #             color="black",size=.25)+
+        geom_vline(aes(xintercept=0),
+                   color="black", size=1)+
+        geom_hline(aes(yintercept=0),
+                   color="black", size=1)+
+        annotate(geom="segment",
+                 x=rep(0,nv),
+                 xend=texto$x,
+                 y=rep(0,nv),
+                 yend=texto$y,color="black",lwd=.5)+
+        geom_label(data=texto,aes(x=x,y=y,label=label),
+                   color="black",angle=0,fontface="bold",size=4,fill="white")+
+        labs(x=paste("CP1 (",round(100*ve[1],2),"%)",sep=""),
+             y=paste("CP2 (",round(100*ve[2],2),"%)",sep=""),
+             color="",shape="")+
+        theme(legend.position = "top")
+      print(bi_plot)
+      
+      print("==== Tabela da correlação dos atributos com cada PC ====")
+      ck<-sum(pca$sdev^2>=0.98)
+      tabelapca<-vector()
+      for( l in 1:ck) tabelapca<-cbind(tabelapca,mcor[,l])
+      colnames(tabelapca)<-paste(rep(c("PC"),ck),1:ck,sep="")
+      pcat<-round(tabelapca,3)
+      tabelapca<-tabelapca[order(abs(tabelapca[,1])),]
+      print(tabelapca)
+    }
+  # }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -23,7 +23,10 @@ readr::write_rds(data_set,"data/dados-climaticos.rds")
 
 ## Carregando o banco de dados
 data_set_2 <- readxl::read_xlsx("data-raw/Dados TCC Neucy - Organizados.xlsx") |>
-  janitor::clean_names() #|>
+  janitor::clean_names() |>
+  dplyr::mutate(
+    epoca = forcats::as_factor(epoca)
+  )
   # dplyr::rename(data = dia) |>
   # dplyr::mutate(
   #   dia = lubridate::day(data),
