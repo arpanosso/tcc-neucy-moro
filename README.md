@@ -72,191 +72,236 @@ dados_climatico |>
   ) 
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- --> <!--
-## Estatísticas descritivas gerais
+![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
+<!-- ## Estatísticas descritivas gerais -->
 
-``` r
-resumo_geral <- dados_climatico  |> 
-  summarise(
-    temp_min_media = mean(temp_min, na.rm = TRUE),
-    temp_med_media = mean(temp_media, na.rm = TRUE),
-    temp_max_media = mean(temp_max, na.rm = TRUE),
-    prec_media = mean(precipitacao, na.rm = TRUE),
-    temp_min_sd = sd(temp_min, na.rm = TRUE),
-    temp_med_sd = sd(temp_media, na.rm = TRUE),
-    temp_max_sd = sd(temp_max, na.rm = TRUE),
-    prec_sd = sd(precipitacao, na.rm = TRUE),
-    n_dias = n()
-  )
-resumo_geral
-#> # A tibble: 1 × 9
-#>   temp_min_media temp_med_media temp_max_media prec_media temp_min_sd
-#>            <dbl>          <dbl>          <dbl>      <dbl>       <dbl>
-#> 1           19.8           25.2           32.1       5.33        3.03
-#> # ℹ 4 more variables: temp_med_sd <dbl>, temp_max_sd <dbl>, prec_sd <dbl>,
-#> #   n_dias <int>
-```
-##  Estatísticas mensais
+<!-- ```{r} -->
 
+<!-- resumo_geral <- dados_climatico  |>  -->
 
-``` r
-resumo_mensal <- dados_climatico  |> 
-  group_by(ano, mes)  |> 
-  summarise(
-    temp_min = mean(temp_min, na.rm = TRUE),
-    temp_med = mean(temp_media, na.rm = TRUE),
-    temp_max = mean(temp_max, na.rm = TRUE),
-    prec_total = sum(precipitacao, na.rm = TRUE),
-    .groups = "drop"
-  )
-resumo_mensal
-#> # A tibble: 65 × 6
-#>      ano   mes temp_min temp_med temp_max prec_total
-#>    <dbl> <dbl>    <dbl>    <dbl>    <dbl>      <dbl>
-#>  1  2020     1     22.2     25.6     31.2      376. 
-#>  2  2020     2     22.5     25.7     31.1      360. 
-#>  3  2020     3     22.5     26.0     31.3      171. 
-#>  4  2020     4     21.6     25.7     30.9      103. 
-#>  5  2020     5     17.9     23.5     29.9       71.4
-#>  6  2020     6     17.4     24.6     32.6        0  
-#>  7  2020     7     15.6     24.4     33.4        0  
-#>  8  2020     8     16.1     25.5     34.7        0  
-#>  9  2020     9     19.4     28.1     37.0        0  
-#> 10  2020    10     21.8     27.3     34.8       86.8
-#> # ℹ 55 more rows
-```
+<!--   summarise( -->
 
-## Gráficos de tendência temporal
+<!--     temp_min_media = mean(temp_min, na.rm = TRUE), -->
 
-### Temperatura média diária
+<!--     temp_med_media = mean(temp_media, na.rm = TRUE), -->
 
+<!--     temp_max_media = mean(temp_max, na.rm = TRUE), -->
 
-``` r
-dados_climatico |> 
-  ggplot(aes(x = data, y = temp_media)) +
-  geom_line(color = "darkred", alpha = 0.6) +
-  geom_smooth(method = "loess", se = FALSE, color = "black") +
-  labs(title = "Temperatura media diaria", x = "Data", y = "oC") +
-  theme_minimal()
-```
+<!--     prec_media = mean(precipitacao, na.rm = TRUE), -->
 
-![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+<!--     temp_min_sd = sd(temp_min, na.rm = TRUE), -->
 
-## Precipitação diária
+<!--     temp_med_sd = sd(temp_media, na.rm = TRUE), -->
 
-``` r
-dados_climatico |> 
-  ggplot(aes(x = data, y = precipitacao)) +
-  geom_col(fill = "steelblue4") +
-  labs(title = "Precipitacao diaria", x = "Data", y = "mm") +
-  theme_minimal() +
-  facet_wrap(~ano,scale="free") +
-  theme(
-    axis.text.x = element_text(angle = 45)
-  )
-```
+<!--     temp_max_sd = sd(temp_max, na.rm = TRUE), -->
 
-![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+<!--     prec_sd = sd(precipitacao, na.rm = TRUE), -->
 
-## Boxplots mensais (sazonalidade)
+<!--     n_dias = n() -->
 
-``` r
-dados_climatico |> 
-  ggplot(aes(x = as_factor(mes), y = temp_media)) +
-  geom_boxplot(fill = "orange4", alpha = 0.7) +
-  labs(title = "Distribuicao mensal da temperatura media", 
-       x = "Mes", y = "oC") +
-  theme_minimal()
-```
+<!--   ) -->
 
-![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+<!-- resumo_geral -->
 
-``` r
-dados_climatico |> 
-  ggplot(aes(x = as_factor(mes), y = precipitacao)) +
-  geom_boxplot(fill = "skyblue3", alpha = 0.7) +
-  labs(title = "Distribuicao mensal da precipitacao diaria", 
-       x = "Mes", y = "mm") +
-  theme_minimal()
-```
+<!-- ``` -->
 
-![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+<!-- ##  Estatísticas mensais -->
 
-## Correlação entre variáveis
+<!-- ```{r} -->
 
-``` r
-cor_matriz <- dados_climatico %>%
-  select(temp_min, temp_media, temp_max, precipitacao) %>%
-  cor(use = "pairwise.complete.obs")
+<!-- resumo_mensal <- dados_climatico  |>  -->
 
-corrplot(cor_matriz, method = "color", addCoef.col = "grey6")
-```
+<!--   group_by(ano, mes)  |>  -->
 
-![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+<!--   summarise( -->
 
-## Análises de extremos
+<!--     temp_min = mean(temp_min, na.rm = TRUE), -->
 
-``` r
-# Dias de chuva
-dias_chuva <- sum(dados_climatico$precipitacao > 1, na.rm = TRUE)
+<!--     temp_med = mean(temp_media, na.rm = TRUE), -->
 
-# Dias secos consecutivos
-dias_secos <- rle(dados_climatico$precipitacao == 0)$lengths
-max_dias_secos <- max(dias_secos)
+<!--     temp_max = mean(temp_max, na.rm = TRUE), -->
 
-# Ondas de calor (dias com T > p90)
-limite_calor <- quantile(dados_climatico$temp_max, 0.9, na.rm = TRUE)
-ondas_calor <- sum(dados_climatico$temp_max > limite_calor, na.rm = TRUE)
-dias_chuva
-#> [1] 609
-max_dias_secos
-#> [1] 141
-ondas_calor
-#> [1] 198
-```
+<!--     prec_total = sum(precipitacao, na.rm = TRUE), -->
 
-``` r
-# Gráfico tipo climograma
-climograma <- resumo_mensal %>%
-  ggplot(aes(x = mes)) +
-  geom_col(aes(y = prec_total), fill = "steelblue4", alpha = 0.6) +
-  geom_line(aes(y = temp_med * 50, group = 1), color = "red", size = 1.1) +
-  scale_y_continuous(
-    name = "Precipitacao (mm)",
-    sec.axis = sec_axis(~./50, name = "Temperatura media (oC)")
-  ) +
-  labs(title = "Climograma - Precipitacao e Temperatura Media Mensal") +
-  theme_minimal()
+<!--     .groups = "drop" -->
 
-print(climograma)
-```
+<!--   ) -->
 
-![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+<!-- resumo_mensal -->
 
-## Tendência temporal (Mann-Kendall)
+<!-- ``` -->
 
-``` r
-teste_temp <- mk.test(dados_climatico$temp_media)
-print(teste_temp)
-#> 
-#>  Mann-Kendall trend test
-#> 
-#> data:  dados_climatico$temp_media
-#> z = -4.1334, n = 1974, p-value = 3.575e-05
-#> alternative hypothesis: true S is not equal to 0
-#> sample estimates:
-#>             S          varS           tau 
-#> -1.208800e+05  8.552482e+08 -6.225825e-02
-```
+<!-- ## Gráficos de tendência temporal -->
 
-``` r
-ggplot(dados_climatico, aes(x = data, y = temp_media)) +
-  geom_line(alpha = 0.6, color = "red4") +
-  geom_smooth(method = "lm", se = TRUE, color = "black") +
-  labs(title = "Tendencia temporal da temperatura media (2020–2025)",
-       x = "Data", y = "Temperatura media (oC)") +
-  theme_minimal()
-```
+<!-- ### Temperatura média diária -->
 
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- --> –\>
+<!-- ```{r} -->
+
+<!-- dados_climatico |>  -->
+
+<!--   ggplot(aes(x = data, y = temp_media)) + -->
+
+<!--   geom_line(color = "darkred", alpha = 0.6) + -->
+
+<!--   geom_smooth(method = "loess", se = FALSE, color = "black") + -->
+
+<!--   labs(title = "Temperatura media diaria", x = "Data", y = "oC") + -->
+
+<!--   theme_minimal() -->
+
+<!-- ``` -->
+
+<!-- ## Precipitação diária -->
+
+<!-- ```{r} -->
+
+<!-- dados_climatico |>  -->
+
+<!--   ggplot(aes(x = data, y = precipitacao)) + -->
+
+<!--   geom_col(fill = "steelblue4") + -->
+
+<!--   labs(title = "Precipitacao diaria", x = "Data", y = "mm") + -->
+
+<!--   theme_minimal() + -->
+
+<!--   facet_wrap(~ano,scale="free") + -->
+
+<!--   theme( -->
+
+<!--     axis.text.x = element_text(angle = 45) -->
+
+<!--   ) -->
+
+<!-- ``` -->
+
+<!-- ## Boxplots mensais (sazonalidade) -->
+
+<!-- ```{r} -->
+
+<!-- dados_climatico |>  -->
+
+<!--   ggplot(aes(x = as_factor(mes), y = temp_media)) + -->
+
+<!--   geom_boxplot(fill = "orange4", alpha = 0.7) + -->
+
+<!--   labs(title = "Distribuicao mensal da temperatura media",  -->
+
+<!--        x = "Mes", y = "oC") + -->
+
+<!--   theme_minimal() -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- dados_climatico |>  -->
+
+<!--   ggplot(aes(x = as_factor(mes), y = precipitacao)) + -->
+
+<!--   geom_boxplot(fill = "skyblue3", alpha = 0.7) + -->
+
+<!--   labs(title = "Distribuicao mensal da precipitacao diaria",  -->
+
+<!--        x = "Mes", y = "mm") + -->
+
+<!--   theme_minimal() -->
+
+<!-- ``` -->
+
+<!-- ## Correlação entre variáveis -->
+
+<!-- ```{r} -->
+
+<!-- cor_matriz <- dados_climatico %>% -->
+
+<!--   select(temp_min, temp_media, temp_max, precipitacao) %>% -->
+
+<!--   cor(use = "pairwise.complete.obs") -->
+
+<!-- corrplot(cor_matriz, method = "color", addCoef.col = "grey6") -->
+
+<!-- ``` -->
+
+<!-- ## Análises de extremos -->
+
+<!-- ```{r} -->
+
+<!-- # Dias de chuva -->
+
+<!-- dias_chuva <- sum(dados_climatico$precipitacao > 1, na.rm = TRUE) -->
+
+<!-- # Dias secos consecutivos -->
+
+<!-- dias_secos <- rle(dados_climatico$precipitacao == 0)$lengths -->
+
+<!-- max_dias_secos <- max(dias_secos) -->
+
+<!-- # Ondas de calor (dias com T > p90) -->
+
+<!-- limite_calor <- quantile(dados_climatico$temp_max, 0.9, na.rm = TRUE) -->
+
+<!-- ondas_calor <- sum(dados_climatico$temp_max > limite_calor, na.rm = TRUE) -->
+
+<!-- dias_chuva -->
+
+<!-- max_dias_secos -->
+
+<!-- ondas_calor -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- # Gráfico tipo climograma -->
+
+<!-- climograma <- resumo_mensal %>% -->
+
+<!--   ggplot(aes(x = mes)) + -->
+
+<!--   geom_col(aes(y = prec_total), fill = "steelblue4", alpha = 0.6) + -->
+
+<!--   geom_line(aes(y = temp_med * 50, group = 1), color = "red", size = 1.1) + -->
+
+<!--   scale_y_continuous( -->
+
+<!--     name = "Precipitacao (mm)", -->
+
+<!--     sec.axis = sec_axis(~./50, name = "Temperatura media (oC)") -->
+
+<!--   ) + -->
+
+<!--   labs(title = "Climograma - Precipitacao e Temperatura Media Mensal") + -->
+
+<!--   theme_minimal() -->
+
+<!-- print(climograma) -->
+
+<!-- ``` -->
+
+<!-- ## Tendência temporal (Mann-Kendall) -->
+
+<!-- ```{r} -->
+
+<!-- teste_temp <- mk.test(dados_climatico$temp_media) -->
+
+<!-- print(teste_temp) -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- ggplot(dados_climatico, aes(x = data, y = temp_media)) + -->
+
+<!--   geom_line(alpha = 0.6, color = "red4") + -->
+
+<!--   geom_smooth(method = "lm", se = TRUE, color = "black") + -->
+
+<!--   labs(title = "Tendencia temporal da temperatura media (2020–2025)", -->
+
+<!--        x = "Data", y = "Temperatura media (oC)") + -->
+
+<!--   theme_minimal() -->
+
+<!-- ``` -->
